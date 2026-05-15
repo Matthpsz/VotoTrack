@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acessar VotoTrack</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --primary: #041627;
+            --background: #f8f9ff;
+            --outline-variant: #c4c6cd;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: white;
+            border: 1px solid var(--outline-variant);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 20, 0.05);
+        }
+
+        .logo-text {
+            font-family: 'Public Sans';
+            font-weight: 900;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .nav-pills .nav-link {
+            color: #666;
+            font-weight: 500;
+        }
+
+            .nav-pills .nav-link.active {
+                background-color: var(--primary);
+                color: white;
+            }
+
+        .btn-auth {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.8rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            width: 100%;
+            border: none;
+            margin-top: 1rem;
+        }
+
+        .form-floating > .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <a href="/" class="logo-text">VotoTrack</a>
+
+        <div class="auth-card">
+            <h2 class="h4 text-center mb-4 fw-bold">Bem-vindo</h2>
+
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-danger" role="alert">
+                    @ViewBag.ErrorMessage
+                </div>
+            }
+
+            <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-3" id="authTab" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane" type="button">Entrar</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="reg-tab" data-bs-toggle="tab" data-bs-target="#reg-pane" type="button">Cadastrar</button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- Login -->
+                <div class="tab-pane fade show active" id="login-pane" role="tabpanel">
+                    <form action="/Auth/Login" method="post">
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="emailL" name="Email" placeholder="Email">
+                            <label>E-mail</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="passL" name="Password" placeholder="Senha">
+                            <label>Senha</label>
+                        </div>
+                        <button type="submit" class="btn-auth">Entrar</button>
+                    </form>
+                </div>
+
+                <!-- Cadastro -->
+                <div class="tab-pane fade" id="reg-pane" role="tabpanel">
+                    <form action="/Auth/Register" method="post">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="nameR" name="FullName" placeholder="Nome">
+                            <label>Nome Completo</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="emailR" name="Email" placeholder="Email">
+                            <label>E-mail</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="passR" name="Password" placeholder="Senha">
+                            <label>Crie uma senha</label>
+                        </div>
+                        <button type="submit" class="btn-auth">Criar Conta</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="/" class="text-muted small text-decoration-none">← Voltar para a página inicial</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

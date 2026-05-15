@@ -1,0 +1,17 @@
+# .gitignore for .NET
+bin/
+obj/
+.vs/
+.env
+appsettings.Development.json
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Publish output
+publish/
+
+# Rider/Resharper
+.idea/
+*.DotSettings.user

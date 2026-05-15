@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>FAQ & API - VotoTrack</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <style>
+        :root {
+            /* Palette de Cores Customizada - Seguindo a Index */
+            --primary: #041627;
+            --primary-container: #1a2b3c;
+            --on-primary: #ffffff;
+            --secondary: #006d37;
+            --secondary-container: #6bfe9c;
+            --on-secondary-container: #00743a;
+            --background: #f8f9ff;
+            --on-surface: #0b1c30;
+            --on-surface-variant: #44474c;
+            --outline-variant: #c4c6cd;
+            --surface-container-low: #eff4ff;
+            --surface-container-high: #dce9ff;
+            --inverse-primary: #b7c8de;
+            --error: #ba1a1a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--on-surface);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .font-h {
+            font-family: 'Public Sans', sans-serif;
+            font-weight: 700;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        .nav-link-custom {
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+            .nav-link-custom:hover {
+                color: var(--primary);
+            }
+
+        .card-custom {
+            background: white;
+            border: 1px solid var(--outline-variant);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+        }
+
+        .faq-question {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.1rem;
+        }
+
+        .faq-answer {
+            color: var(--on-surface-variant);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .label-caps {
+            font-size: 12px;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .api-badge {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: 'monospace';
+            font-size: 0.85rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .hero-mini {
+            padding: 60px 0;
+            background-color: white;
+            border-bottom: 1px solid var(--outline-variant);
+            margin-bottom: 3rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-white sticky-top border-bottom">
+        <nav class="container-xxl d-flex align-items-center justify-content-between" style="height: 64px;">
+            <div class="fs-4 fw-black text-primary" style="font-family: 'Public Sans'; letter-spacing: -1px; cursor: pointer;" onclick="window.location.href='/'">VotoTrack</div>
+
+            <div class="d-none d-md-flex gap-4">
+                <a class="nav-link-custom" href="/">Explorar</a>
+                <a class="nav-link-custom" href="javascript:void(0)" onclick="window.location.href='/Dashboard/Publico'">Dashboard</a>
+                <a class="nav-link-custom fw-bold text-primary" href="/Explorar/FAQ">API</a>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-dark btn-sm px-4" onclick="window.location.href='/Auth/Index'">Entrar</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Mini Hero -->
+        <section class="hero-mini">
+            <div class="container-xxl">
+                <div class="row justify-content-center text-center">
+                    <div class="col-lg-8">
+                        <span class="badge rounded-pill mb-3 py-2 px-3" style="background-color: var(--surface-container-high); color: var(--on-secondary-container);">CENTRAL DE AJUDA</span>
+                        <h1 class="display-4 mb-3 text-primary">FAQ & Transparência de Dados</h1>
+                        <p class="lead text-muted">Entenda como capturamos, processamos e exibimos as informações do Legislativo Brasileiro.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="container-xxl pb-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    
+                    <!-- FAQ Content -->
+                    <div class="mb-5">
+                        <h2 class="h3 mb-4 text-primary d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-secondary">quiz</span>
+                            Perguntas Frequentes
+                        </h2>
+
+                        <div class="card-custom">
+                            <div class="faq-question">
+                                <span class="material-symbols-outlined text-primary">account_balance</span>
+                                O que é o VotoTrack?
+                            </div>
+                            <div class="faq-answer">
+                                O VotoTrack é uma plataforma independente de monitoramento legislativo. Nosso objetivo é traduzir a complexidade dos dados de Brasília em uma interface simples, permitindo que qualquer cidadão acompanhe o desempenho de seus representantes.
+                            </div>
+                        </div>
+
+                        <div class="card-custom">
+                            <div class="faq-question">
+                                <span class="material-symbols-outlined">source</span>
+                                Qual a origem dos dados?
+                            </div>
+                            <div class="faq-answer">
+                                100% das informações são extraídas de fontes oficiais. Utilizamos a <strong>API de Dados Abertos da Câmara dos Deputados</strong> e o <strong>Portal de Dados Abertos do Senado Federal</strong>. Não editamos o conteúdo das votações ou gastos; apenas os organizamos para melhor visualização.
+                            </div>
+                        </div>
+
+                        <div class="card-custom">
+                            <div class="faq-question">
+                                <span class="material-symbols-outlined">analytics</span>
+                                Que tipo de informação posso encontrar?
+                            </div>
+                            <div class="faq-answer">
+                                <ul class="mb-0">
+                                    <li><strong>Histórico de Votos:</strong> Posicionamentos em sessões plenárias.</li>
+                                    <li><strong>Gastos Parlamentares:</strong> Detalhamento da cota para exercício da atividade (CEAP).</li>
+                                    <li><strong>Proposições:</strong> Projetos de lei, emendas e requerimentos protocolados.</li>
+                                    <li><strong>Perfil Completo:</strong> Dados biográficos, contatos e redes sociais.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card-custom">
+                            <div class="faq-question">
+                                <span class="material-symbols-outlined">sync</span>
+                                Os dados são atualizados em tempo real?
+                            </div>
+                            <div class="faq-answer">
+                                Sim. Nossa infraestrutura realiza consultas periódicas aos servidores do Governo. Votações importantes costumam aparecer no VotoTrack poucos minutos após o registro oficial em Brasília.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API Docs Section -->
+                    <div id="api-docs" class="mt-5 pt-4">
+                        <h2 class="h3 mb-4 text-primary d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-secondary">terminal</span>
+                            Desenvolvedores e API
+                        </h2>
+                        
+                        <div class="p-4 p-md-5 rounded-4 text-white shadow-lg" style="background-color: var(--primary); background-image: radial-gradient(circle at top right, rgba(255,255,255,0.05), transparent);">
+                            <h3 class="h4 mb-3">Transparência Tecnológica</h3>
+                            <p class="mb-4" style="color: var(--inverse-primary); font-size: 1.05rem;">
+                                O VotoTrack incentiva a criação de novas ferramentas de cidadania. Embora não ofereçamos uma API pública própria no momento, encorajamos o uso das APIs originais que alimentam nosso sistema.
+                            </p>
+                            
+                            <div class="row g-4 mb-5">
+                                <div class="col-md-6">
+                                    <div class="label-caps mb-3" style="color: var(--secondary-container);">Câmara dos Deputados</div>
+                                    <div class="api-badge mb-2 d-inline-block">https://dadosabertos.camara.leg.br/api/v2/</div>
+                                    <p class="small mt-2" style="color: var(--inverse-primary);">Acesso a deputados, eventos, votações e órgãos.</p>
+                                    <a href="https://dadosabertos.camara.leg.br/swagger/api.html" target="_blank" class="btn btn-sm btn-outline-light mt-2">Documentação Swagger</a>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="label-caps mb-3" style="color: var(--secondary-container);">Senado Federal</div>
+                                    <div class="api-badge mb-2 d-inline-block">https://legis.senado.leg.br/dadosabertos/</div>
+                                    <p class="small mt-2" style="color: var(--inverse-primary);">Acesso a senadores, matérias legislativas e comissões.</p>
+                                    <a href="https://legis.senado.leg.br/dadosabertos/" target="_blank" class="btn btn-sm btn-outline-light mt-2">Documentação Oficial</a>
+                                </div>
+                            </div>
+
+                            <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="d-flex align-items-center gap-2 small">
+                                    <span class="material-symbols-outlined text-success">info</span>
+                                    <span>Para suporte técnico sobre integrações, entre em contato via repositório oficial.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-top py-5">
+        <div class="container-xxl">
+            <div class="row g-4 justify-content-between mb-5">
+                <div class="col-lg-3">
+                    <div class="fw-bold fs-5 text-primary mb-3">VotoTrack</div>
+                    <p class="small text-muted">Dados abertos para uma democracia transparente. Monitorando o futuro através dos dados do presente.</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="label-caps text-primary mb-3">Recursos</div>
+                    <ul class="list-unstyled small d-flex flex-column gap-2">
+                        <li><a href="/Explorar/FAQ" class="text-muted text-decoration-none">FAQ & API Docs</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-top pt-4">
+                <span class="label-caps text-muted" style="font-size: 10px;">Feito com ética e transparência tecnológica.</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

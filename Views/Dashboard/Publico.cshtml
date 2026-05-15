@@ -1,0 +1,415 @@
+@using VotoTrack.Models
+@model List<DeputadoRecord>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Público - VotoTrack</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <style>
+        :root {
+            --primary: #041627;
+            --background: #f8f9ff;
+            --outline-variant: #c4c6cd;
+            --surface: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--primary);
+        }
+
+        h1, h2, h3 {
+            font-family: 'Public Sans', sans-serif;
+            font-weight: 700;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--outline-variant);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: transform 0.2s;
+            height: 100%;
+        }
+
+        .vote-item {
+            background: var(--surface);
+            border: 1px solid var(--outline-variant);
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+
+            .vote-item:hover {
+                border-color: var(--primary);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                transform: translateY(-2px);
+            }
+
+        .status-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            text-transform: uppercase;
+        }
+
+        .project-link {
+            transition: all 0.2s ease;
+            display: block;
+        }
+
+            .project-link:hover {
+                background-color: #f8f9fa;
+                transform: translateX(5px);
+            }
+
+        a {
+            text-decoration: none !important;
+        }
+
+        .icon-filled {
+            font-variation-settings: 'FILL' 1 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/Dashboard/Publico" style="font-family: 'Public Sans';">VotoTrack</a>
+            <div class="d-flex gap-2">
+                <a href="/Dashboard/MinhaBancada" class="btn btn-sm btn-outline-primary rounded-pill px-3">Minha Bancada</a>
+                <a href="/Auth/Logout" class="btn btn-sm btn-outline-danger rounded-pill px-3">Sair</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row mb-4 align-items-end">
+            <div class="col-md-8">
+                <span class="badge text-primary mb-2" style="background: #dce9ff;">DADOS OFICIAIS</span>
+                <h1 class="display-5">Transparência Legislativa</h1>
+                <p class="text-muted">Acompanhe em tempo real as atividades da Câmara dos Deputados.</p>
+            </div>
+        </div>
+
+        <!-- 1. Barra de Filtros -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-5" style="background:white;">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label small fw-bold text-muted">BUSCAR</label>
+                    <div class="position-relative">
+                        <span class="material-symbols-outlined position-absolute text-muted" style="left: 0.9rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem;">search</span>
+                        <input type="text" id="searchInput" class="form-control ps-5" placeholder="Nome, partido, estado..." oninput="aplicarFiltros()">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">ESTADO (UF)</label>
+                    <select id="filtroEstado" class="form-select" onchange="aplicarFiltros()">
+                        <option value="">Todos os estados</option>
+                        @if (ViewBag.Estados != null) {
+                            foreach (var uf in (List<string>)ViewBag.Estados) {
+                                <option value="@uf.ToLower()">@uf</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">PARTIDO</label>
+                    <select id="filtroPartido" class="form-select" onchange="aplicarFiltros()">
+                        <option value="">Todos os partidos</option>
+                        @if (ViewBag.Partidos != null) {
+                            foreach (var partido in (List<string>)ViewBag.Partidos) {
+                                <option value="@partido.ToLower()">@partido</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-outline-secondary w-100" onclick="limparFiltros()" title="Limpar">
+                        <span class="material-symbols-outlined">filter_alt_off</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Resultados da Busca (SÓ APARECE AO FILTRAR) -->
+        <div id="containerResultados" class="mb-5" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0">Resultados da Busca</h3>
+                <span id="contadorDeputados" class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fs-6">0 parlamentares</span>
+            </div>
+            <div class="row g-3" id="listaDeputados">
+                @foreach (var deputado in Model)
+                {
+                    <div class="col-6 col-md-3 col-lg-2 deputado-item"
+                         data-nome="@deputado.Nome.ToLower()"
+                         data-uf="@deputado.SiglaUf.ToLower()"
+                         data-partido="@deputado.SiglaPartido.ToLower()"
+                         data-search="@deputado.Nome.ToLower() @deputado.SiglaPartido.ToLower() @deputado.SiglaUf.ToLower()">
+                        <div class="stat-card text-center position-relative h-100">
+                            @{
+                                bool isFavorito = ViewBag.Favoritos != null && ((HashSet<int>)ViewBag.Favoritos).Contains(deputado.Id);
+                                string filledClass = isFavorito ? "icon-filled" : "";
+                            }
+                            <button onclick="toggleFavorito(@deputado.Id, this)" class="btn btn-sm position-absolute top-0 end-0 m-2 border-0 shadow-none" style="z-index: 10;">
+                                <span class="material-symbols-outlined fs-5 text-warning @filledClass">star</span>
+                            </button>
+                            <img src="@deputado.UrlFoto" alt="@deputado.Nome"
+                                 class="rounded-circle mb-2 border border-2 border-light shadow-sm"
+                                 style="width: 64px; height: 64px; object-fit: cover;">
+                            <div class="fw-bold text-dark small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
+                            <div class="badge bg-primary bg-opacity-10 text-primary small mb-1">@deputado.SiglaPartido</div>
+                            <div class="text-muted" style="font-size:0.7rem;">@deputado.SiglaUf</div>
+                            <a href="/Dashboard/DetalhesDeputado/@deputado.Id" class="btn btn-sm btn-outline-primary rounded-pill w-100 mt-2" style="font-size:0.75rem;">Ver Atividade</a>
+                        </div>
+                    </div>
+                }
+            </div>
+            <hr class="my-5 opacity-25">
+        </div>
+
+        <!-- 3. Deputados em Destaque -->
+        <div class="mb-5" id="containerDestaques">
+            <h3 class="mb-4">Deputados em Destaque</h3>
+            <div class="row g-3">
+                @foreach (var deputado in Model.Take(8))
+                {
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="stat-card text-center position-relative h-100">
+                            @{
+                                bool isFavorito = ViewBag.Favoritos != null && ((HashSet<int>)ViewBag.Favoritos).Contains(deputado.Id);
+                                string filledClass = isFavorito ? "icon-filled" : "";
+                            }
+                            <button onclick="toggleFavorito(@deputado.Id, this)" class="btn btn-sm position-absolute top-0 end-0 m-2 border-0 shadow-none" style="z-index: 10;">
+                                <span class="material-symbols-outlined fs-5 text-warning @filledClass">star</span>
+                            </button>
+                            <img src="@deputado.UrlFoto" alt="@deputado.Nome"
+                                 class="rounded-circle mb-2 border border-2 border-light shadow-sm"
+                                 style="width: 64px; height: 64px; object-fit: cover;">
+                            <div class="fw-bold text-dark small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
+                            <div class="badge bg-primary bg-opacity-10 text-primary small mb-1">@deputado.SiglaPartido</div>
+                            <div class="text-muted" style="font-size:0.7rem;">@deputado.SiglaUf</div>
+                            <a href="/Dashboard/DetalhesDeputado/@deputado.Id" class="btn btn-sm btn-outline-primary rounded-pill w-100 mt-2" style="font-size:0.75rem;">Ver Atividade</a>
+                        </div>
+                    </div>
+                }
+            </div>
+            <hr class="my-5 opacity-25">
+        </div>
+
+        <!-- 4. Atividades Recentes (SEMPRE VISÍVEIS) -->
+        <div class="row mb-5" id="containerAtividades">
+            <div class="col-lg-8">
+                <h3 class="mb-4">Últimas Votações</h3>
+                <div id="listaVotacoes">
+                    @if (ViewBag.Votacoes != null)
+                    {
+                        foreach (var votacao in (List<VotacaoRecord>)ViewBag.Votacoes)
+                        {
+                            string idLimpo = votacao.id?.Split('-')[0];
+                            string searchText = ((votacao.proposicaoNome ?? "") + " " + (votacao.siglaOrgao ?? "")).ToLower();
+
+                            <a href="https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=@idLimpo"
+                               target="_blank" class="text-dark votacao-item" data-search="@searchText">
+                                <div class="vote-item d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-light p-3 rounded-circle text-primary">
+                                            <span class="material-symbols-outlined fs-2">gavel</span>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold fs-5">@(votacao.proposicaoNome ?? "Votação em " + votacao.siglaOrgao)</div>
+                                            <div class="text-muted small">@votacao.siglaOrgao • @votacao.data</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="status-badge bg-primary text-white">CONCLUÍDA</span>
+                                        <div class="mt-2 small fw-bold text-muted">ID: @votacao.id</div>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    }
+                </div>
+                <a href="https://www.camara.leg.br/plenario" target="_blank"
+                   class="btn btn-outline-primary w-100 py-3 rounded-3 fw-bold mt-2">
+                    Acompanhar Plenário ao Vivo
+                </a>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background: white;">
+                    <h4 class="mb-3">Novos Projetos</h4>
+                    <div class="d-flex flex-column gap-3" id="listaProjetos">
+                        @if (ViewBag.Projetos != null)
+                        {
+                            foreach (var projeto in (List<ProjetoRecord>)ViewBag.Projetos)
+                            {
+                                string projSearch = (projeto.siglaTipo + " " + projeto.numero + " " + projeto.ano + " " + projeto.ementa).ToLower();
+                                <a href="https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=@projeto.id"
+                                   target="_blank" class="project-link projeto-item" data-search="@projSearch">
+                                    <div class="pb-3 border-bottom">
+                                        <span class="badge bg-success-subtle text-success mb-1">@projeto.siglaTipo @projeto.numero/@projeto.ano</span>
+                                        <div class="small fw-semibold text-dark lh-sm" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                            @projeto.ementa
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 p-4 text-white" style="background: #041627;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined">verified_user</span>
+                        <h4 class="m-0">Transparência</h4>
+                    </div>
+                    <p class="small opacity-75">Dados em tempo real da API de Dados Abertos do Congresso Nacional.</p>
+                    <a href="https://dadosabertos.camara.leg.br/" target="_blank" class="text-white fw-bold small d-flex align-items-center gap-1 mt-2">
+                        Documentação da API <span class="material-symbols-outlined fs-6">open_in_new</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-white border-top py-5 mt-5">
+        <div class="container text-center">
+            <p class="text-muted small mb-0">&copy; 2026 VotoTrack - Tecnologia para a Democracia.</p>
+        </div>
+    </footer>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal fade" id="confirmUnfavoriteModal" tabindex="-1" aria-labelledby="confirmUnfavoriteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="confirmUnfavoriteModalLabel">Remover dos Favoritos</h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-muted">
+                    Tem certeza de que deseja remover este parlamentar da sua bancada (favoritos)? Você pode adicioná-lo novamente a qualquer momento.
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-3 fw-medium px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger rounded-3 fw-medium px-4" id="confirmUnfavoriteBtn">Sim, remover</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let deputadoToUnfavoriteId = null;
+        let btnToUpdate = null;
+        let confirmModal = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            confirmModal = new bootstrap.Modal(document.getElementById('confirmUnfavoriteModal'));
+        });
+
+        async function toggleFavorito(id, btnElement) {
+            const icon = btnElement.querySelector('.material-symbols-outlined');
+            const isFavorited = icon.classList.contains('icon-filled');
+
+            if (isFavorited) {
+                deputadoToUnfavoriteId = id;
+                btnToUpdate = icon;
+                confirmModal.show();
+            } else {
+                try {
+                    const response = await fetch('/Dashboard/Favoritar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(id)
+                    });
+
+                    if (response.ok) {
+                        icon.classList.add('icon-filled');
+                    } else if (response.status === 401) {
+                        window.location.href = '/Auth/Index';
+                    }
+                } catch (error) {
+                    console.error('Erro ao favoritar:', error);
+                }
+            }
+        }
+
+        document.getElementById('confirmUnfavoriteBtn').addEventListener('click', async () => {
+            if (deputadoToUnfavoriteId) {
+                try {
+                    const response = await fetch('/Dashboard/RemoverFavorito', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(deputadoToUnfavoriteId)
+                    });
+
+                    if (response.ok) {
+                        btnToUpdate.classList.remove('icon-filled');
+                        confirmModal.hide();
+                    }
+                } catch (error) {
+                    console.error('Erro ao remover favorito:', error);
+                }
+            }
+        });
+
+        function aplicarFiltros() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const uf = document.getElementById('filtroEstado').value;
+            const partido = document.getElementById('filtroPartido').value;
+            
+            const isFiltering = query !== '' || uf !== '' || partido !== '';
+
+            const containerResultados = document.getElementById('containerResultados');
+            const containerDestaques = document.getElementById('containerDestaques');
+            
+            // Novos Projetos e Votações ficam SEMPRE VISÍVEIS agora
+            if (isFiltering) {
+                containerResultados.style.display = 'block';
+                containerDestaques.style.display = 'none';
+            } else {
+                containerResultados.style.display = 'none';
+                containerDestaques.style.display = 'block';
+            }
+
+            let visiveisDeputados = 0;
+            document.querySelectorAll('#listaDeputados .deputado-item').forEach(el => {
+                const matchSearch = query === '' || (el.dataset.search || '').includes(query);
+                const matchUf = uf === '' || (el.dataset.uf || '') === uf;
+                const matchPartido = partido === '' || (el.dataset.partido || '') === partido;
+
+                const visivel = matchSearch && matchUf && matchPartido;
+                el.style.display = visivel ? '' : 'none';
+                if (visivel) visiveisDeputados++;
+            });
+
+            const contador = document.getElementById('contadorDeputados');
+            if (contador) contador.innerText = visiveisDeputados + ' parlamentares';
+
+            // Filtra Votações e Projetos no container que permanece visível
+            document.querySelectorAll('.votacao-item, .projeto-item').forEach(el => {
+                const visivel = query === '' || (el.dataset.search || '').includes(query);
+                el.style.display = visivel ? '' : 'none';
+            });
+        }
+
+        function limparFiltros() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filtroEstado').value = '';
+            document.getElementById('filtroPartido').value = '';
+            aplicarFiltros();
+        }
+    </script>
+</body>
+</html>

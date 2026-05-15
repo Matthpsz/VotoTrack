@@ -1,0 +1,325 @@
+@using VotoTrack.Models
+@model DetalhesDeputadoViewModel
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Perfil Parlamentar - @Model.Deputado.Nome</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <style>
+        :root {
+            --primary: #041627;
+            --background: #f8f9ff;
+            --outline-variant: #c4c6cd;
+            --surface: #ffffff;
+            --accent: #2563eb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--primary);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Public Sans', sans-serif;
+            font-weight: 700;
+        }
+
+        .cover-photo {
+            height: 250px;
+            background: linear-gradient(135deg, var(--primary) 0%, #1a365d 100%);
+            border-radius: 1.5rem;
+            margin-bottom: -100px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cover-photo::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('https://www.camara.leg.br/tema/assets/images/foto-plenario-camara.jpg') center/cover;
+            opacity: 0.15;
+            mix-blend-mode: overlay;
+        }
+
+        .profile-header {
+            position: relative;
+            z-index: 10;
+            margin-top: -80px;
+        }
+
+        .profile-avatar {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 6px solid var(--background);
+            object-fit: cover;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            background: white;
+        }
+
+        .profile-info {
+            padding-bottom: 1rem;
+            flex-grow: 1;
+        }
+
+        .card-custom {
+            background: var(--surface);
+            border: 1px solid var(--outline-variant);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--outline-variant);
+            opacity: 0.5;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.85rem;
+            top: 0.25rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 3px solid var(--surface);
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+
+        .icon-filled {
+            font-variation-settings: 'FILL' 1 !important;
+        }
+
+        .nav-link-custom {
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .expense-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+        <div class="container">
+            <a class="navbar-brand text-primary fw-bold" style="font-family: 'Public Sans';" href="/Dashboard/Publico">VotoTrack</a>
+            <div class="d-flex gap-2">
+                <a href="/Dashboard/MinhaBancada" class="btn btn-sm btn-outline-primary rounded-pill px-3">Minha Bancada</a>
+                <a href="/Auth/Logout" class="btn btn-sm btn-outline-danger rounded-pill px-3">Sair</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Back Button -->
+        <a href="javascript:history.back()" class="btn btn-link text-decoration-none text-muted p-0 mb-3 d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-5">arrow_back</span> Voltar
+        </a>
+
+        <!-- Cover & Header -->
+        <div class="cover-photo shadow-sm"></div>
+        
+        <div class="profile-header mb-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5" style="background: white;">
+                <div class="d-flex flex-column flex-md-row gap-4 align-items-center align-items-md-end text-center text-md-start">
+                    
+                    <img src="@Model.Deputado.UrlFoto" alt="@Model.Deputado.Nome" class="profile-avatar shadow-sm" style="margin-top: -100px;">
+                    
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2 text-dark">@Model.Deputado.Nome</h1>
+                        <div class="d-flex flex-wrap justify-content-center justify-content-md-start align-items-center gap-3 text-muted fw-medium">
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle fs-6 px-3 py-2 rounded-pill">@Model.Deputado.SiglaPartido</span>
+                            <span class="d-flex align-items-center gap-1"><span class="material-symbols-outlined fs-5">location_on</span> @Model.Deputado.SiglaUf</span>
+                            @if (!string.IsNullOrEmpty(Model.Detalhes?.CondicaoEleitoral))
+                            {
+                                <span class="d-flex align-items-center gap-1"><span class="material-symbols-outlined fs-5">verified</span> @Model.Detalhes.CondicaoEleitoral</span>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 mt-md-0">
+                        @{
+                            string favoritarText = Model.IsFavorito ? "Na Bancada" : "Favoritar";
+                            string favoritarIcon = Model.IsFavorito ? "icon-filled text-warning" : "text-muted";
+                            string btnClass = Model.IsFavorito ? "btn-light border" : "btn-outline-primary";
+                        }
+                        <button onclick="toggleFavorito(@Model.Deputado.Id, this)" class="btn @btnClass rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined @favoritarIcon" id="favIcon">star</span>
+                            <span id="favText">@favoritarText</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column: Details & Expenses -->
+            <div class="col-lg-4">
+                <div class="card-custom mb-4">
+                    <h4 class="mb-4 d-flex align-items-center gap-2"><span class="material-symbols-outlined text-primary">info</span> Dados Pessoais</h4>
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+                        <li><small class="text-muted d-block">Nome Civil</small><span class="fw-medium">@(Model.Detalhes?.NomeCivil ?? "-")</span></li>
+                        <li><small class="text-muted d-block">Data de Nascimento</small><span class="fw-medium">@(Model.Detalhes?.DataNascimento ?? "-")</span></li>
+                        <li><small class="text-muted d-block">Naturalidade</small><span class="fw-medium">@(Model.Detalhes?.MunicipioNascimento ?? "-") / @(Model.Detalhes?.UfNascimento ?? "-")</span></li>
+                        <li><small class="text-muted d-block">Escolaridade</small><span class="fw-medium">@(Model.Detalhes?.Escolaridade ?? "-")</span></li>
+                        @if (Model.Detalhes?.Gabinete != null)
+                        {
+                            <li class="mt-2 pt-3 border-top">
+                                <small class="text-muted d-block fw-bold mb-2">Gabinete @Model.Detalhes.Gabinete.Sala - Anexo @Model.Detalhes.Gabinete.Predio</small>
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="d-flex align-items-center gap-2 small"><span class="material-symbols-outlined fs-6">call</span> @Model.Detalhes.Gabinete.Telefone</span>
+                                    <span class="d-flex align-items-center gap-2 small"><span class="material-symbols-outlined fs-6">mail</span> @Model.Detalhes.Gabinete.Email</span>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="card-custom">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="m-0 d-flex align-items-center gap-2"><span class="material-symbols-outlined text-danger">receipt_long</span> Despesas Recentes</h4>
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-pill px-3">@Model.Despesas.Count registros</span>
+                    </div>
+                    <div>
+                        @foreach (var despesa in Model.Despesas)
+                        {
+                            <div class="expense-item">
+                                <div>
+                                    <h6 class="mb-0 fw-bold fs-6">@despesa.TipoDespesa</h6>
+                                    <small class="text-muted">@despesa.Fornecedor • @despesa.Data.ToString("dd/MM/yyyy")</small>
+                                </div>
+                                <span class="fw-bold text-danger">R$ @despesa.Valor.ToString("N2")</span>
+                            </div>
+                        }
+                    </div>
+                    <!-- Total -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 mt-2 border-top">
+                        <span class="fw-bold text-dark">Total do período</span>
+                        <span class="fw-bold text-danger fs-5">R$ @Model.Despesas.Sum(d => d.Valor).ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Timeline / Activity -->
+            <div class="col-lg-8">
+                <div class="card-custom">
+                    <h4 class="mb-4 d-flex align-items-center gap-2"><span class="material-symbols-outlined text-primary">history</span> Atividade Parlamentar Recente</h4>
+                    
+                    <div class="timeline mt-4">
+                        @foreach (var atividade in Model.Atividades)
+                        {
+                            <div class="timeline-item">
+                                <span class="badge bg-light text-dark border mb-2 d-inline-flex align-items-center gap-1">
+                                    @if(atividade.Tipo == "Voto") { <span class="material-symbols-outlined fs-6 text-success">how_to_vote</span> }
+                                    else if(atividade.Tipo == "Discurso") { <span class="material-symbols-outlined fs-6 text-primary">record_voice_over</span> }
+                                    else { <span class="material-symbols-outlined fs-6 text-warning">event_available</span> }
+                                    @atividade.Tipo
+                                </span>
+                                <span class="text-muted small ms-2">@atividade.Data.ToString("dd 'de' MMMM, yyyy")</span>
+                                <h5 class="fw-bold mt-1">@atividade.Titulo</h5>
+                                <p class="text-muted mb-0">@atividade.Descricao</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Compartilhado -->
+    <div class="modal fade" id="authModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-body text-center p-4">
+                    <span class="material-symbols-outlined text-warning mb-3" style="font-size: 3rem;">lock</span>
+                    <h5 class="fw-bold">Ação Exclusiva</h5>
+                    <p class="text-muted">Você precisa estar logado para favoritar um parlamentar.</p>
+                    <a href="/Auth/Index" class="btn btn-primary rounded-pill w-100">Fazer Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let isFav = @Model.IsFavorito.ToString().ToLower();
+        const authModal = new bootstrap.Modal(document.getElementById('authModal'));
+
+        async function toggleFavorito(id, btnElement) {
+            const endpoint = isFav ? '/Dashboard/RemoverFavorito' : '/Dashboard/Favoritar';
+            
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(id)
+                });
+
+                if (response.status === 401) {
+                    authModal.show();
+                    return;
+                }
+
+                if (response.ok) {
+                    isFav = !isFav;
+                    const icon = document.getElementById('favIcon');
+                    const text = document.getElementById('favText');
+                    
+                    if (isFav) {
+                        icon.classList.add('icon-filled', 'text-warning');
+                        icon.classList.remove('text-muted');
+                        text.innerText = "Na Bancada";
+                        btnElement.classList.replace('btn-outline-primary', 'btn-light');
+                        btnElement.classList.add('border');
+                    } else {
+                        icon.classList.remove('icon-filled', 'text-warning');
+                        icon.classList.add('text-muted');
+                        text.innerText = "Favoritar";
+                        btnElement.classList.replace('btn-light', 'btn-outline-primary');
+                        btnElement.classList.remove('border');
+                    }
+                } else {
+                    alert('Erro ao atualizar favorito.');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erro de rede.');
+            }
+        }
+    </script>
+</body>
+</html>

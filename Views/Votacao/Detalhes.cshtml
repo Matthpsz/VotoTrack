@@ -1,0 +1,9 @@
+﻿<div class="d-flex flex-wrap gap-1 justify-content-center bg-white p-4 rounded shadow-sm">
+    @foreach(var deputado in Model.Votos) {
+        <div class="rounded-1 shadow-sm" 
+             style="width: 15px; height: 15px; background-color: @(deputado.Voto == "Sim" ? "#198754" : "#dc3545");"
+             data-bs-toggle="tooltip" 
+             title="@deputado.Nome">
+        </div>
+    }
+</div>

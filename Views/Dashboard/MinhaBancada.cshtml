@@ -1,0 +1,344 @@
+@using VotoTrack.Models
+@model MinhaBancadaViewModel
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minha Bancada - VotoTrack</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <style>
+        :root {
+            --primary: #041627;
+            --background: #f8f9ff;
+            --outline-variant: #c4c6cd;
+            --surface: #ffffff;
+            --accent: #2563eb;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--primary);
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Public Sans', sans-serif;
+            font-weight: 700;
+        }
+
+        .navbar-brand {
+            font-family: 'Public Sans', sans-serif;
+            font-weight: 800;
+        }
+
+        .deputado-card {
+            background: var(--surface);
+            border: 1px solid var(--outline-variant);
+            border-radius: 1.25rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .deputado-card:hover {
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .deputado-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #1a365d 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            position: relative;
+        }
+
+        .deputado-avatar {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid var(--surface);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            position: absolute;
+            bottom: -50px;
+            left: 1.5rem;
+        }
+
+        .deputado-info {
+            padding: 3.5rem 1.5rem 1.5rem 1.5rem;
+        }
+
+        .vote-item, .news-item {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            background: var(--background);
+            margin-bottom: 0.75rem;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .vote-item:hover, .news-item:hover {
+            border-color: var(--outline-variant);
+            background: var(--surface);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .vote-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            text-transform: uppercase;
+        }
+
+        .vote-sim { background-color: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .vote-nao { background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+
+        .section-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link-custom {
+            color: var(--primary);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-link-custom:hover {
+            color: var(--accent);
+        }
+
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: var(--surface);
+            border-radius: 1.5rem;
+            border: 1px dashed var(--outline-variant);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: #cbd5e1;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand text-primary" href="/Dashboard/Publico">VotoTrack</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-collapse="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center gap-3">
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="/Dashboard/Publico">Dashboard Público</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Auth/Logout" class="btn btn-sm btn-outline-danger rounded-pill px-3">Sair</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row mb-5 align-items-end">
+            <div class="col-md-8">
+                <span class="badge text-primary mb-2" style="background: #dce9ff; padding: 0.5rem 1rem; border-radius: 2rem;">ÁREA EXCLUSIVA</span>
+                <h1 class="display-4 fw-bold">Minha Bancada</h1>
+                <p class="text-muted fs-5">Acompanhe de perto as ações, votações e notícias dos parlamentares que você escolheu seguir.</p>
+            </div>
+        </div>
+
+        @if (!Model.DeputadosFavoritos.Any())
+        {
+            <div class="empty-state shadow-sm">
+                <span class="material-symbols-outlined empty-icon">group_off</span>
+                <h3 class="mb-3">Sua bancada está vazia</h3>
+                <p class="text-muted mb-4 max-w-md mx-auto">Você ainda não favoritou nenhum deputado. Volte ao Dashboard Público e adicione parlamentares à sua bancada para acompanhar suas atividades.</p>
+                <a href="/Dashboard/Publico" class="btn btn-primary rounded-pill px-4 py-2 fw-medium">Explorar Deputados</a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var item in Model.DeputadosFavoritos)
+                {
+                    <div class="col-12 col-xl-6">
+                        <div class="deputado-card h-100 d-flex flex-column">
+                            <div class="deputado-header d-flex justify-content-end">
+                                <button onclick="removerFavorito(@item.Deputado.Id, this)" class="btn btn-sm btn-light rounded-circle shadow-sm" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;" title="Remover dos favoritos">
+                                    <span class="material-symbols-outlined text-warning" style="font-variation-settings: 'FILL' 1;">star</span>
+                                </button>
+                                <img src="@item.Deputado.UrlFoto" alt="@item.Deputado.Nome" class="deputado-avatar">
+                            </div>
+                            
+                            <div class="deputado-info flex-grow-1 d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-4">
+                                    <div>
+                                        <h3 class="h4 mb-1 text-dark">@item.Deputado.Nome</h3>
+                                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-medium">
+                                            @item.Deputado.SiglaPartido - @item.Deputado.SiglaUf
+                                        </span>
+                                    </div>
+                                    <a href="https://www.camara.leg.br/deputados/@item.Deputado.Id" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">Ver Perfil Completo</a>
+                                </div>
+
+                                <div class="row flex-grow-1 g-4">
+                                    <!-- Últimas Votações -->
+                                    <div class="col-md-6 d-flex flex-column">
+                                        <h6 class="section-title">
+                                            <span class="material-symbols-outlined fs-6">how_to_vote</span>
+                                            Últimas Votações
+                                        </h6>
+                                        <div class="flex-grow-1">
+                                            @if (!item.VotosRecentes.Any())
+                                            {
+                                                <div class="text-muted small italic">Nenhuma votação recente registrada.</div>
+                                            }
+                                            @foreach (var voto in item.VotosRecentes)
+                                            {
+                                                <div class="vote-item">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <span class="fw-bold text-dark">@voto.Pec</span>
+                                                        <span class="vote-badge @(voto.Voto.ToLower() == "sim" ? "vote-sim" : "vote-nao")">
+                                                            @voto.Voto
+                                                        </span>
+                                                    </div>
+                                                    <p class="small text-muted mb-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">@voto.Descricao</p>
+                                                    <small class="text-secondary opacity-75">@voto.Data.ToString("dd/MM/yyyy")</small>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <!-- Notícias / Atualizações -->
+                                    <div class="col-md-6 d-flex flex-column">
+                                        <h6 class="section-title">
+                                            <span class="material-symbols-outlined fs-6">article</span>
+                                            Radar Parlamentar
+                                        </h6>
+                                        <div class="flex-grow-1">
+                                            @if (!item.Noticias.Any())
+                                            {
+                                                <div class="text-muted small italic">Nenhuma notícia recente.</div>
+                                            }
+                                            @foreach (var noticia in item.Noticias)
+                                            {
+                                                <div class="news-item">
+                                                    <h6 class="fw-bold mb-1 lh-sm" style="font-size: 0.95rem;">@noticia.Titulo</h6>
+                                                    <p class="small text-muted mb-2 lh-sm" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">@noticia.Resumo</p>
+                                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border-0">@noticia.Fonte</span>
+                                                        <small class="text-secondary opacity-75">@noticia.Data.ToString("dd/MM/yyyy")</small>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Modal de Confirmação de Remoção -->
+    <div class="modal fade" id="confirmRemoveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Remover Parlamentar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-muted pt-3">
+                    Tem certeza que deseja remover este parlamentar da sua bancada? Você deixará de acompanhar suas atualizações aqui.
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-medium" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger rounded-pill px-4 fw-medium" id="btnConfirmRemove">Sim, remover</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let depToRemoveId = null;
+        let btnToRemove = null;
+        let removeModal = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            removeModal = new bootstrap.Modal(document.getElementById('confirmRemoveModal'));
+        });
+
+        function removerFavorito(id, btnElement) {
+            depToRemoveId = id;
+            btnToRemove = btnElement;
+            removeModal.show();
+        }
+
+        document.getElementById('btnConfirmRemove').addEventListener('click', async () => {
+            if (depToRemoveId) {
+                removeModal.hide();
+                try {
+                    const response = await fetch('/Dashboard/RemoverFavorito', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(depToRemoveId)
+                    });
+
+                    if (response.status === 401) {
+                        window.location.href = '/Auth/Index';
+                        return;
+                    }
+
+                    if (response.ok) {
+                        // Remove the card from UI
+                        const card = btnToRemove.closest('.col-12');
+                        card.style.transition = 'all 0.4s ease';
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.9)';
+                        
+                        setTimeout(() => {
+                            card.remove();
+                            // Check if there are no more cards
+                            if (document.querySelectorAll('.deputado-card').length === 0) {
+                                location.reload(); // Reload to show empty state
+                            }
+                        }, 400);
+                    } else {
+                        const err = await response.json();
+                        alert('Erro ao remover: ' + (err.message || 'Desconhecido'));
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Erro de comunicação com o servidor.');
+                }
+                
+                depToRemoveId = null;
+                btnToRemove = null;
+            }
+        });
+    </script>
+</body>
+</html>
