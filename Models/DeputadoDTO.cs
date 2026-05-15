@@ -78,4 +78,31 @@ namespace VotoTrack.Models
     {
         public List<ProjetoRecord> dados { get; set; }
     }
+
+    public class DespesaRecord
+    {
+        public string tipoDespesa { get; set; }
+        public decimal valorDocumento { get; set; }
+        public string dataDocumento { get; set; }
+        public string nomeFornecedor { get; set; }
+    }
+
+    public class DespesaResponse
+    {
+        public List<DespesaRecord> dados { get; set; }
+    }
+
+    public class DiscursoRecord
+    {
+        public string tipoDiscurso { get; set; }
+        public string dataHoraInicio { get; set; }
+        public string keywords { get; set; }
+        public string ementa { get; set; }
+        public string titulo { get; set; }
+    }
+
+    public class DiscursoResponse
+    {
+        public List<DiscursoRecord> dados { get; set; }
+    }
 }

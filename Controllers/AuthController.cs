@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Supabase;
 using System.Threading.Tasks;
 using System;
@@ -90,6 +90,60 @@ public class AuthController : Controller
         {
             ViewBag.ErrorMessage = "Erro ao realizar login: " + ex.Message;
             return View("Index");
+        }
+    }
+
+    public IActionResult ForgotPassword() => View();
+
+    [HttpPost]
+    public async Task<IActionResult> ForgotPassword(string Email)
+    {
+        try
+        {
+            await _supabase.InitializeAsync();
+            
+            // Define a URL de redirecionamento para a página de ResetPassword
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var resetUrl = $"{baseUrl}/Auth/ResetPassword";
+            var options = new Supabase.Gotrue.ResetPasswordForEmailOptions { RedirectTo = resetUrl };
+
+            await _supabase.Auth.ResetPasswordForEmail(Email, options);
+            
+            ViewBag.SuccessMessage = "Se o e-mail estiver cadastrado, você receberá um link para redefinir sua senha.";
+            return View();
+        }
+        catch (Exception ex)
+        {
+            ViewBag.ErrorMessage = "Erro ao processar solicitação: " + ex.Message;
+            return View();
+        }
+    }
+
+    public IActionResult ResetPassword() => View();
+
+    [HttpPost]
+    public async Task<IActionResult> ResetPassword(string Password, string AccessToken)
+    {
+        try
+        {
+            await _supabase.InitializeAsync();
+            
+            // Define a sessão usando o token recebido do link de recuperação
+            await _supabase.Auth.SetSession(AccessToken);
+
+            var attrs = new Supabase.Gotrue.UserAttributes { Password = Password };
+            await _supabase.Auth.Update(attrs);
+
+            // Opcional: fazer logout após trocar a senha para forçar novo login
+            await _supabase.Auth.SignOut();
+
+            ViewBag.SuccessMessage = "Senha alterada com sucesso! Você já pode fazer login.";
+            return View("Index");
+        }
+        catch (Exception ex)
+        {
+            ViewBag.ErrorMessage = "Erro ao alterar senha: " + ex.Message;
+            return View();
         }
     }
 

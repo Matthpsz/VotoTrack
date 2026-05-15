@@ -199,12 +199,25 @@ namespace VotoTrack.Controllers
                                 }
                             };
 
-                            // Mocking votes for demonstration as full vote history requires complex data assembly
-                            detalhe.VotosRecentes.Add(new VotoDetalhe { Pec = "PEC 45/2019", Descricao = "Reforma Tributária", Voto = "Sim", Data = DateTime.Now.AddDays(-10) });
-                            detalhe.VotosRecentes.Add(new VotoDetalhe { Pec = "PL 2630/2020", Descricao = "Lei das Fake News", Voto = "Não", Data = DateTime.Now.AddDays(-25) });
-
-                            // Mocking news
-                            detalhe.Noticias.Add(new Noticia { Titulo = $"{detalhe.Deputado.Nome} discursa sobre a PEC 45/2019", Resumo = "Parlamentar defende a aprovação do texto base...", Data = DateTime.Now.AddDays(-5), Fonte = "Câmara dos Deputados" });
+                            // Busca discursos reais como "notícias"
+                            try
+                            {
+                                var discursos = await _httpClient.GetFromJsonAsync<DiscursoResponse>($"deputados/{f.DeputadoId}/discursos?itens=2&ordem=DESC&ordenarPor=dataHoraInicio");
+                                if (discursos?.dados != null)
+                                {
+                                    foreach (var d in discursos.dados)
+                                    {
+                                        detalhe.Noticias.Add(new Noticia
+                                        {
+                                            Titulo = d.titulo ?? "Pronunciamento Parlamentar",
+                                            Resumo = d.ementa ?? d.keywords,
+                                            Data = DateTime.TryParse(d.dataHoraInicio, out var dt) ? dt : DateTime.Now,
+                                            Fonte = "Câmara dos Deputados"
+                                        });
+                                    }
+                                }
+                            }
+                            catch { }
 
                             viewModel.DeputadosFavoritos.Add(detalhe);
                         }
@@ -280,24 +293,39 @@ namespace VotoTrack.Controllers
                         } : null
                     };
 
-                    // Despesas
-                    viewModel.Despesas.Add(new Despesa { TipoDespesa = "Passagens Aéreas", Valor = 3500.50m, Data = DateTime.Now.AddDays(-5), Fornecedor = "GOL Linhas Aéreas" });
-                    viewModel.Despesas.Add(new Despesa { TipoDespesa = "Serviços Postais", Valor = 150.00m, Data = DateTime.Now.AddDays(-12), Fornecedor = "Correios" });
-                    viewModel.Despesas.Add(new Despesa { TipoDespesa = "Telefonia", Valor = 450.75m, Data = DateTime.Now.AddDays(-15), Fornecedor = "Vivo S.A." });
-                    viewModel.Despesas.Add(new Despesa { TipoDespesa = "Manutenção de Escritório", Valor = 1200.00m, Data = DateTime.Now.AddDays(-20), Fornecedor = "Imobiliária Centro" });
-                    viewModel.Despesas.Add(new Despesa { TipoDespesa = "Divulgação Parlamentar", Valor = 2800.00m, Data = DateTime.Now.AddDays(-25), Fornecedor = "Gráfica Brasília" });
-                    viewModel.Despesas.Add(new Despesa { TipoDespesa = "Combustíveis", Valor = 620.30m, Data = DateTime.Now.AddDays(-30), Fornecedor = "Posto BR Brasília" });
-                    viewModel.Despesas.Add(new Despesa { TipoDespesa = "Hospedagem", Valor = 890.00m, Data = DateTime.Now.AddDays(-35), Fornecedor = "Hotel Nacional" });
-                    viewModel.Despesas.Add(new Despesa { TipoDespesa = "Consultoria Técnica", Valor = 5000.00m, Data = DateTime.Now.AddDays(-40), Fornecedor = "Instituto Legislativo" });
+                    // Despesas Reais
+                    try
+                    {
+                        var despesasData = await _httpClient.GetFromJsonAsync<DespesaResponse>($"deputados/{id}/despesas?itens=15&ordem=DESC&ordenarPor=dataDocumento");
+                        if (despesasData?.dados != null)
+                        {
+                            viewModel.Despesas = despesasData.dados.Select(d => new Despesa
+                            {
+                                TipoDespesa = d.tipoDespesa,
+                                Valor = d.valorDocumento,
+                                Data = DateTime.TryParse(d.dataDocumento, out var dt) ? dt : DateTime.MinValue,
+                                Fornecedor = d.nomeFornecedor
+                            }).ToList();
+                        }
+                    }
+                    catch { }
 
-                    // Atividades Legislativas
-                    viewModel.Atividades.Add(new AtividadeLegislativa { Tipo = "Discurso", Titulo = "Pronunciamento no Plenário", Data = DateTime.Now.AddDays(-2), Descricao = "Defesa de maiores investimentos em educação básica e acesso à universidade pública para estudantes de baixa renda." });
-                    viewModel.Atividades.Add(new AtividadeLegislativa { Tipo = "Voto", Titulo = "PEC 45/2019 — Reforma Tributária", Data = DateTime.Now.AddDays(-10), Descricao = "Votou SIM ao texto-base da Reforma Tributária, que unifica impostos sobre consumo e cria o IVA dual brasileiro." });
-                    viewModel.Atividades.Add(new AtividadeLegislativa { Tipo = "Presença", Titulo = "Comissão de Constituição e Justiça (CCJ)", Data = DateTime.Now.AddDays(-14), Descricao = "Registrou presença na 14ª reunião ordinária da CCJ. Pauta: análise de admissibilidade de PECs pendentes." });
-                    viewModel.Atividades.Add(new AtividadeLegislativa { Tipo = "Voto", Titulo = "PL 2630/2020 — Lei das Fake News", Data = DateTime.Now.AddDays(-20), Descricao = "Votou NÃO ao projeto que regulamenta a responsabilidade de plataformas digitais sobre a disseminação de desinformação." });
-                    viewModel.Atividades.Add(new AtividadeLegislativa { Tipo = "Discurso", Titulo = "Debate sobre Segurança Pública", Data = DateTime.Now.AddDays(-28), Descricao = "Apresentou dados sobre aumento da criminalidade organizada e defendeu maior orçamento para forças de segurança estaduais." });
-                    viewModel.Atividades.Add(new AtividadeLegislativa { Tipo = "Presença", Titulo = "Comissão de Saúde", Data = DateTime.Now.AddDays(-35), Descricao = "Participou da audiência pública sobre a regulamentação de planos de saúde e reajustes de mensalidades." });
-                    viewModel.Atividades.Add(new AtividadeLegislativa { Tipo = "Voto", Titulo = "PEC 32/2020 — Reforma Administrativa", Data = DateTime.Now.AddDays(-45), Descricao = "Votou SIM à proposta que altera regras de ingresso e carreira no serviço público federal." });
+                    // Atividades Reais (usando Discursos como exemplo de atividade)
+                    try
+                    {
+                        var discursosData = await _httpClient.GetFromJsonAsync<DiscursoResponse>($"deputados/{id}/discursos?itens=15&ordem=DESC&ordenarPor=dataHoraInicio");
+                        if (discursosData?.dados != null)
+                        {
+                            viewModel.Atividades = discursosData.dados.Select(d => new AtividadeLegislativa
+                            {
+                                Tipo = d.tipoDiscurso ?? "Discurso",
+                                Titulo = d.titulo ?? "Pronunciamento",
+                                Data = DateTime.TryParse(d.dataHoraInicio, out var dt) ? dt : DateTime.MinValue,
+                                Descricao = !string.IsNullOrEmpty(d.ementa) ? d.ementa : d.keywords
+                            }).ToList();
+                        }
+                    }
+                    catch { }
                 }
             }
             catch (Exception ex)
