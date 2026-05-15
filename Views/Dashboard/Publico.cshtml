@@ -228,7 +228,7 @@
                                         </div>
                                         <div>
                                             <div class="fw-bold fs-5">@(votacao.proposicaoNome ?? "Votação em " + votacao.siglaOrgao)</div>
-                                            <div class="text-muted small">@votacao.siglaOrgao • @votacao.data</div>
+                                            <div class="text-muted small">@votacao.siglaOrgao • @(DateTime.TryParse(votacao.data, out var dtV) ? dtV.ToString("dd/MM/yyyy") : votacao.data)</div>
                                         </div>
                                     </div>
                                     <div class="text-end">

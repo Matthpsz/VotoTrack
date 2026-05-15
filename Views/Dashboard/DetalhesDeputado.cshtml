@@ -193,7 +193,7 @@
                     <h4 class="mb-4 d-flex align-items-center gap-2"><span class="material-symbols-outlined text-primary">info</span> Dados Pessoais</h4>
                     <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
                         <li><small class="text-muted d-block">Nome Civil</small><span class="fw-medium">@(Model.Detalhes?.NomeCivil ?? "-")</span></li>
-                        <li><small class="text-muted d-block">Data de Nascimento</small><span class="fw-medium">@(Model.Detalhes?.DataNascimento ?? "-")</span></li>
+                        <li><small class="text-muted d-block">Data de Nascimento</small><span class="fw-medium">@(DateTime.TryParse(Model.Detalhes?.DataNascimento, out var dtN) ? dtN.ToString("dd/MM/yyyy") : (Model.Detalhes?.DataNascimento ?? "-"))</span></li>
                         <li><small class="text-muted d-block">Naturalidade</small><span class="fw-medium">@(Model.Detalhes?.MunicipioNascimento ?? "-") / @(Model.Detalhes?.UfNascimento ?? "-")</span></li>
                         <li><small class="text-muted d-block">Escolaridade</small><span class="fw-medium">@(Model.Detalhes?.Escolaridade ?? "-")</span></li>
                         @if (Model.Detalhes?.Gabinete != null)
