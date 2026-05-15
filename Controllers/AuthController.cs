@@ -105,9 +105,9 @@ public class AuthController : Controller
             // Define a URL de redirecionamento para a página de ResetPassword
             var baseUrl = $"{Request.Scheme}://{Request.Host}";
             var resetUrl = $"{baseUrl}/Auth/ResetPassword";
-            var options = new Supabase.Gotrue.ResetPasswordForEmailOptions { RedirectTo = resetUrl };
-
-            await _supabase.Auth.ResetPasswordForEmail(Email, options);
+            
+            var options = new Supabase.Gotrue.ResetPasswordForEmailOptions(Email) { RedirectTo = resetUrl };
+            await _supabase.Auth.ResetPasswordForEmail(options);
             
             ViewBag.SuccessMessage = "Se o e-mail estiver cadastrado, você receberá um link para redefinir sua senha.";
             return View();
@@ -128,8 +128,9 @@ public class AuthController : Controller
         {
             await _supabase.InitializeAsync();
             
-            // Define a sessão usando o token recebido do link de recuperação
-            await _supabase.Auth.SetSession(AccessToken);
+            // Define a sessão usando o token recebido do link de recuperação. 
+            // O parâmetro refreshToken pode ser vazio para links de recuperação.
+            await _supabase.Auth.SetSession(AccessToken, ""); 
 
             var attrs = new Supabase.Gotrue.UserAttributes { Password = Password };
             await _supabase.Auth.Update(attrs);
