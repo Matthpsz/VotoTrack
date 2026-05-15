@@ -199,10 +199,10 @@ namespace VotoTrack.Controllers
                                 }
                             };
 
-                            // Busca discursos reais como "notícias"
+                            // Busca discursos reais como "notícias" (aumentado para 5 itens)
                             try
                             {
-                                var discursos = await _httpClient.GetFromJsonAsync<DiscursoResponse>($"deputados/{f.DeputadoId}/discursos?itens=2&ordem=DESC&ordenarPor=dataHoraInicio");
+                                var discursos = await _httpClient.GetFromJsonAsync<DiscursoResponse>($"deputados/{f.DeputadoId}/discursos?itens=5&ordem=DESC&ordenarPor=dataHoraInicio");
                                 if (discursos?.dados != null)
                                 {
                                     foreach (var d in discursos.dados)
@@ -210,7 +210,7 @@ namespace VotoTrack.Controllers
                                         detalhe.Noticias.Add(new Noticia
                                         {
                                             Titulo = d.titulo ?? "Pronunciamento Parlamentar",
-                                            Resumo = d.ementa ?? d.keywords,
+                                            Resumo = d.ementa ?? d.keywords ?? "Resumo não disponível.",
                                             Data = DateTime.TryParse(d.dataHoraInicio, out var dt) ? dt : DateTime.Now,
                                             Fonte = "Câmara dos Deputados"
                                         });
@@ -293,10 +293,18 @@ namespace VotoTrack.Controllers
                         } : null
                     };
 
-                    // Despesas Reais
+                    // Despesas Reais (Buscando 30 itens para garantir dados)
                     try
                     {
-                        var despesasData = await _httpClient.GetFromJsonAsync<DespesaResponse>($"deputados/{id}/despesas?itens=15&ordem=DESC&ordenarPor=dataDocumento");
+                        // Buscamos despesas do ano atual (2026)
+                        var despesasData = await _httpClient.GetFromJsonAsync<DespesaResponse>($"deputados/{id}/despesas?ano=2026&itens=30&ordem=DESC&ordenarPor=dataDocumento");
+                        
+                        // Se não houver despesas em 2026 ainda, tentamos 2025
+                        if (despesasData == null || despesasData.dados == null || !despesasData.dados.Any())
+                        {
+                            despesasData = await _httpClient.GetFromJsonAsync<DespesaResponse>($"deputados/{id}/despesas?ano=2025&itens=30&ordem=DESC&ordenarPor=dataDocumento");
+                        }
+
                         if (despesasData?.dados != null)
                         {
                             viewModel.Despesas = despesasData.dados.Select(d => new Despesa
@@ -310,10 +318,10 @@ namespace VotoTrack.Controllers
                     }
                     catch { }
 
-                    // Atividades Reais (usando Discursos como exemplo de atividade)
+                    // Atividades Reais (Buscando discursos)
                     try
                     {
-                        var discursosData = await _httpClient.GetFromJsonAsync<DiscursoResponse>($"deputados/{id}/discursos?itens=15&ordem=DESC&ordenarPor=dataHoraInicio");
+                        var discursosData = await _httpClient.GetFromJsonAsync<DiscursoResponse>($"deputados/{id}/discursos?itens=30&ordem=DESC&ordenarPor=dataHoraInicio");
                         if (discursosData?.dados != null)
                         {
                             viewModel.Atividades = discursosData.dados.Select(d => new AtividadeLegislativa
@@ -321,7 +329,7 @@ namespace VotoTrack.Controllers
                                 Tipo = d.tipoDiscurso ?? "Discurso",
                                 Titulo = d.titulo ?? "Pronunciamento",
                                 Data = DateTime.TryParse(d.dataHoraInicio, out var dt) ? dt : DateTime.MinValue,
-                                Descricao = !string.IsNullOrEmpty(d.ementa) ? d.ementa : d.keywords
+                                Descricao = !string.IsNullOrEmpty(d.ementa) ? d.ementa : (!string.IsNullOrEmpty(d.keywords) ? d.keywords : "Sem resumo disponível.")
                             }).ToList();
                         }
                     }
