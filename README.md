@@ -1,6 +1,11 @@
-# VotoTrack 🇧🇷
+# VotoTrack
 
 VotoTrack é uma plataforma de transparência pública projetada para aproximar o cidadão do Poder Legislativo. Através de uma interface moderna, o sistema consolida dados em tempo real da Câmara dos Deputados, permitindo o acompanhamento detalhado de gastos, projetos de lei, discursos e votações.
+
+<img width="1294" height="884" alt="image" src="https://github.com/user-attachments/assets/a57bafa9-7cde-4bf0-8234-1c45528b449f" />
+<img width="1107" height="903" alt="image" src="https://github.com/user-attachments/assets/65cc73d6-9ac2-40ec-959e-aeaaf69b1b06" />
+<img width="1078" height="905" alt="image" src="https://github.com/user-attachments/assets/fb7bde5f-9d2b-40b0-9462-492e54676fd0" />
+
 
 ## ✨ Diferenciais
 - **Performance Otimizada**: Carregamento do dashboard através de integração direta e eficiente com a API de Dados Abertos.
