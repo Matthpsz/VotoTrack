@@ -37,9 +37,10 @@ namespace VotoTrack.Models
     public class AtividadeLegislativa
     {
         public string Titulo { get; set; }
-        public string Tipo { get; set; } // Discurso, Presença, Voto
+        public string Tipo { get; set; } // Discurso, Presença, Voto, Projeto
         public DateTime Data { get; set; }
         public string Descricao { get; set; }
+        public string UrlLink { get; set; }
     }
 
     public class Despesa
@@ -48,5 +49,6 @@ namespace VotoTrack.Models
         public decimal Valor { get; set; }
         public DateTime Data { get; set; }
         public string Fornecedor { get; set; }
+        public string UrlDocumento { get; set; }
     }
 }

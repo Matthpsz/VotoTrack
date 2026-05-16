@@ -65,8 +65,14 @@ public class AuthController : Controller
         }
         catch (Exception ex)
         {
-            // Em caso de erro, retorna para a tela com uma mensagem (pode ser ajustado no frontend depois)
-            ViewBag.ErrorMessage = "Erro ao realizar cadastro: " + ex.Message;
+            string msg = ex.Message;
+            if (msg.Contains("User already registered", StringComparison.OrdinalIgnoreCase))
+                ViewBag.ErrorMessage = "Este e-mail já está cadastrado em nosso sistema.";
+            else if (msg.Contains("Password should be", StringComparison.OrdinalIgnoreCase))
+                ViewBag.ErrorMessage = "A senha deve conter pelo menos 6 caracteres.";
+            else
+                ViewBag.ErrorMessage = "Erro ao realizar cadastro. Verifique os dados fornecidos.";
+            
             return View("Index");
         }
     }
@@ -88,7 +94,14 @@ public class AuthController : Controller
         }
         catch (Exception ex)
         {
-            ViewBag.ErrorMessage = "Erro ao realizar login: " + ex.Message;
+            string msg = ex.Message;
+            if (msg.Contains("Invalid login credentials", StringComparison.OrdinalIgnoreCase))
+                ViewBag.ErrorMessage = "E-mail ou senha incorretos.";
+            else if (msg.Contains("Email not confirmed", StringComparison.OrdinalIgnoreCase))
+                ViewBag.ErrorMessage = "Por favor, confirme seu e-mail antes de fazer login.";
+            else
+                ViewBag.ErrorMessage = "Erro ao realizar login. Tente novamente mais tarde.";
+                
             return View("Index");
         }
     }

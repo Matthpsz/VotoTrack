@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace VotoTrack.Models
 {
     public class DeputadoRecord
@@ -7,6 +9,8 @@ namespace VotoTrack.Models
         public string SiglaPartido { get; set; }
         public string SiglaUf { get; set; }
         public string UrlFoto { get; set; }
+        public string Esfera { get; set; } = "Federal"; // Default: Federal
+        public string IdGlobal => $"{Esfera}_{Id}"; // ID Único para evitar colisões
     }
 
     public class ApiResponse
@@ -53,56 +57,125 @@ namespace VotoTrack.Models
 
     public class VotacaoRecord
     {
-        public string id { get; set; } // Adicione o ID
-        public string siglaOrgao { get; set; }
-        public string proposicaoNome { get; set; }
-        public string data { get; set; }
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
+        [JsonPropertyName("siglaOrgao")]
+        public string SiglaOrgao { get; set; }
+        [JsonPropertyName("proposicaoNome")]
+        public string ProposicaoNome { get; set; }
+        [JsonPropertyName("data")]
+        public string Data { get; set; }
     }
 
     public class VotacaoResponse
     {
-        public List<VotacaoRecord> dados { get; set; }
+        [JsonPropertyName("dados")]
+        public List<VotacaoRecord> Dados { get; set; }
     }
 
     public class ProjetoRecord
     {
-        public int id { get; set; } // Adicione o ID se não tiver
-        public string siglaTipo { get; set; }
-        public int numero { get; set; }
-        public int ano { get; set; }
-        public string ementa { get; set; }
-        public string uri { get; set; } // Link da API ou detalhamento
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+        [JsonPropertyName("siglaTipo")]
+        public string SiglaTipo { get; set; }
+        [JsonPropertyName("numero")]
+        public int Numero { get; set; }
+        [JsonPropertyName("ano")]
+        public int Ano { get; set; }
+        [JsonPropertyName("ementa")]
+        public string Ementa { get; set; }
+        [JsonPropertyName("uri")]
+        public string Uri { get; set; }
     }
 
     public class ProjetoResponse
     {
-        public List<ProjetoRecord> dados { get; set; }
+        [JsonPropertyName("dados")]
+        public List<ProjetoRecord> Dados { get; set; }
     }
 
     public class DespesaRecord
     {
-        public string tipoDespesa { get; set; }
-        public decimal valorDocumento { get; set; }
-        public string dataDocumento { get; set; }
-        public string nomeFornecedor { get; set; }
+        [JsonPropertyName("tipoDespesa")]
+        public string TipoDespesa { get; set; }
+        [JsonPropertyName("valorDocumento")]
+        public decimal ValorDocumento { get; set; }
+        [JsonPropertyName("dataDocumento")]
+        public string DataDocumento { get; set; }
+        [JsonPropertyName("nomeFornecedor")]
+        public string NomeFornecedor { get; set; }
+        [JsonPropertyName("urlDocumento")]
+        public string UrlDocumento { get; set; }
     }
 
     public class DespesaResponse
     {
-        public List<DespesaRecord> dados { get; set; }
+        [JsonPropertyName("dados")]
+        public List<DespesaRecord> Dados { get; set; }
     }
 
     public class DiscursoRecord
     {
-        public string tipoDiscurso { get; set; }
-        public string dataHoraInicio { get; set; }
-        public string keywords { get; set; }
-        public string ementa { get; set; }
-        public string titulo { get; set; }
+        [JsonPropertyName("tipoDiscurso")]
+        public string TipoDiscurso { get; set; }
+        [JsonPropertyName("dataHoraInicio")]
+        public string DataHoraInicio { get; set; }
+        [JsonPropertyName("keywords")]
+        public string Keywords { get; set; }
+        [JsonPropertyName("ementa")]
+        public string Ementa { get; set; }
+        [JsonPropertyName("titulo")]
+        public string Titulo { get; set; }
+        [JsonPropertyName("urlTexto")]
+        public string UrlTexto { get; set; }
+        [JsonPropertyName("urlVideo")]
+        public string UrlVideo { get; set; }
+        [JsonPropertyName("urlAudio")]
+        public string UrlAudio { get; set; }
     }
 
     public class DiscursoResponse
     {
-        public List<DiscursoRecord> dados { get; set; }
+        [JsonPropertyName("dados")]
+        public List<DiscursoRecord> Dados { get; set; }
+    }
+
+    public class SenateResponse
+    {
+        [JsonPropertyName("ListaParticipacaoAtual")]
+        public ListaParticipacaoAtual ListaParticipacaoAtual { get; set; }
+    }
+
+    public class ListaParticipacaoAtual
+    {
+        [JsonPropertyName("Parlamentares")]
+        public Parlamentares Parlamentares { get; set; }
+    }
+
+    public class Parlamentares
+    {
+        [JsonPropertyName("Parlamentar")]
+        public List<SenadorRecord> Parlamentar { get; set; }
+    }
+
+    public class SenadorRecord
+    {
+        [JsonPropertyName("IdentificacaoParlamentar")]
+        public IdentificacaoParlamentar IdentificacaoParlamentar { get; set; }
+    }
+
+    public class IdentificacaoParlamentar
+    {
+        [JsonPropertyName("CodigoParlamentar")]
+        public int CodigoParlamentar { get; set; }
+        [JsonPropertyName("NomeParlamentar")]
+        public string NomeParlamentar { get; set; }
+        [JsonPropertyName("SiglaPartidoParlamentar")]
+        public string SiglaPartidoParlamentar { get; set; }
+        [JsonPropertyName("UfParlamentar")]
+        public string UfParlamentar { get; set; }
+        [JsonPropertyName("UrlFotoParlamentar")]
+        public string UrlFotoParlamentar { get; set; }
     }
 }

@@ -19,35 +19,29 @@ namespace VotoTrack.Controllers
 
         public async Task<IActionResult> Publico([FromServices] Supabase.Client supabase)
         {
-            // Busca TODOS os deputados (paginação paralela, ~513 deputados, 6 páginas de 100)
-            var deputados = await _cache.GetOrCreateAsync("todos_deputados", async entry =>
+            // Busca TODOS os deputados (Federal + Estadual SP) - Nova chave para forçar refresh
+            var deputados = await _cache.GetOrCreateAsync("lista_parlamentares_v3", async entry =>
             {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
-                var pageTasks = Enumerable.Range(1, 6)
-                    .Select(page => SafeGetFromCache<ApiResponse>($"dep_page_{page}",
-                        () => _httpClient.GetFromJsonAsync<ApiResponse>(
-                            $"deputados?itens=100&ordem=ASC&ordenarPor=nome&pagina={page}")))
-                    .ToList();
-
-                await Task.WhenAll(pageTasks);
-
-                return pageTasks
-                    .Select(t => t.Result)
-                    .Where(r => r?.Dados != null)
-                    .SelectMany(r => r!.Dados)
-                    .ToList();
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12);
+                
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>("deputados?itens=1000&ordem=ASC&ordenarPor=nome");
+                return response?.Dados ?? new List<DeputadoRecord>();
             }) ?? new List<DeputadoRecord>();
 
-            var votacoes = await SafeGetFromCache("votacoes_recentes",
-                () => _httpClient.GetFromJsonAsync<VotacaoResponse>("votacoes?itens=15&ordem=DESC&ordenarPor=dataHoraRegistro"))
-                .ContinueWith(t => t.Result?.dados ?? new List<VotacaoRecord>());
+            string dataInicio = DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd");
+            string dataFim = DateTime.Now.ToString("yyyy-MM-dd");
+            int anoAtual = DateTime.Now.Year;
 
-            var projetos = await SafeGetFromCache("projetos_recentes",
-                () => _httpClient.GetFromJsonAsync<ProjetoResponse>("proposicoes?itens=5&ordem=DESC&ordenarPor=id"))
-                .ContinueWith(t => t.Result?.dados ?? new List<ProjetoRecord>());
+            var votacoesResponse = await SafeGetFromCache("votacoes_recentes",
+                () => _httpClient.GetFromJsonAsync<VotacaoResponse>($"votacoes?dataInicio={dataInicio}&dataFim={dataFim}&itens=30&ordem=DESC&ordenarPor=dataHoraRegistro"));
+            var votacoes = votacoesResponse?.Dados ?? new List<VotacaoRecord>();
+
+            var projetosResponse = await SafeGetFromCache("projetos_recentes",
+                () => _httpClient.GetFromJsonAsync<ProjetoResponse>($"proposicoes?ano={anoAtual}&itens=15&ordem=DESC&ordenarPor=id"));
+            var projetos = projetosResponse?.Dados ?? new List<ProjetoRecord>();
 
             ViewBag.Votacoes = votacoes
-                .GroupBy(v => new { v.proposicaoNome, v.siglaOrgao })
+                .GroupBy(v => new { v.ProposicaoNome, v.SiglaOrgao })
                 .Select(g => g.First())
                 .Take(5)
                 .ToList();
@@ -203,15 +197,15 @@ namespace VotoTrack.Controllers
                             try
                             {
                                 var discursos = await _httpClient.GetFromJsonAsync<DiscursoResponse>($"deputados/{f.DeputadoId}/discursos?itens=5&ordem=DESC&ordenarPor=dataHoraInicio");
-                                if (discursos?.dados != null)
+                                if (discursos?.Dados != null)
                                 {
-                                    foreach (var d in discursos.dados)
+                                    foreach (var d in discursos.Dados)
                                     {
                                         detalhe.Noticias.Add(new Noticia
                                         {
-                                            Titulo = d.titulo ?? "Pronunciamento Parlamentar",
-                                            Resumo = d.ementa ?? d.keywords ?? "Resumo não disponível.",
-                                            Data = DateTime.TryParse(d.dataHoraInicio, out var dt) ? dt : DateTime.Now,
+                                            Titulo = d.Titulo ?? "Pronunciamento Parlamentar",
+                                            Resumo = d.Ementa ?? d.Keywords ?? "Resumo não disponível.",
+                                            Data = DateTime.TryParse(d.DataHoraInicio, out var dt) ? dt : DateTime.Now,
                                             Fonte = "Câmara dos Deputados"
                                         });
                                     }
@@ -237,7 +231,7 @@ namespace VotoTrack.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> DetalhesDeputado(int id, [FromServices] Supabase.Client supabase)
+        public async Task<IActionResult> DetalhesDeputado(int id, [FromServices] Supabase.Client supabase, string esfera = "Federal")
         {
             await supabase.InitializeAsync();
             var session = supabase.Auth.CurrentSession;
@@ -293,45 +287,71 @@ namespace VotoTrack.Controllers
                         } : null
                     };
 
-                    // Despesas Reais (Buscando 30 itens para garantir dados)
+                    // Despesas Reais (Busca recursiva em anos anteriores se necessário)
                     try
                     {
-                        // Buscamos despesas do ano atual (2026)
-                        var despesasData = await _httpClient.GetFromJsonAsync<DespesaResponse>($"deputados/{id}/despesas?ano=2026&itens=30&ordem=DESC&ordenarPor=dataDocumento");
+                        DespesaResponse? despesasData = null;
+                        int currentYear = DateTime.Now.Year;
                         
-                        // Se não houver despesas em 2026 ainda, tentamos 2025
-                        if (despesasData == null || despesasData.dados == null || !despesasData.dados.Any())
+                        // Tenta buscar no ano atual e volta até 3 anos se necessário
+                        for (int year = currentYear; year >= currentYear - 3; year--)
                         {
-                            despesasData = await _httpClient.GetFromJsonAsync<DespesaResponse>($"deputados/{id}/despesas?ano=2025&itens=30&ordem=DESC&ordenarPor=dataDocumento");
+                            despesasData = await _httpClient.GetFromJsonAsync<DespesaResponse>($"deputados/{id}/despesas?ano={year}&itens=50&ordem=DESC&ordenarPor=dataDocumento");
+                            if (despesasData?.Dados != null && despesasData.Dados.Any())
+                                break;
                         }
 
-                        if (despesasData?.dados != null)
+                        if (despesasData?.Dados != null)
                         {
-                            viewModel.Despesas = despesasData.dados.Select(d => new Despesa
+                            viewModel.Despesas = despesasData.Dados.Select(d => new Despesa
                             {
-                                TipoDespesa = d.tipoDespesa,
-                                Valor = d.valorDocumento,
-                                Data = DateTime.TryParse(d.dataDocumento, out var dt) ? dt : DateTime.MinValue,
-                                Fornecedor = d.nomeFornecedor
+                                TipoDespesa = d.TipoDespesa,
+                                Valor = d.ValorDocumento,
+                                Data = DateTime.TryParse(d.DataDocumento, out var dt) ? dt : DateTime.MinValue,
+                                Fornecedor = d.NomeFornecedor,
+                                UrlDocumento = d.UrlDocumento
                             }).ToList();
                         }
                     }
                     catch { }
 
-                    // Atividades Reais (Buscando discursos)
+                    // Atividades Reais (Buscando projetos e discursos)
                     try
                     {
-                        var discursosData = await _httpClient.GetFromJsonAsync<DiscursoResponse>($"deputados/{id}/discursos?itens=30&ordem=DESC&ordenarPor=dataHoraInicio");
-                        if (discursosData?.dados != null)
+                        // Buscar Projetos (Proposições)
+                        var projetosData = await _httpClient.GetFromJsonAsync<ProjetoResponse>($"proposicoes?idDeputadoAutor={id}&ordem=DESC&ordenarPor=id&itens=15");
+                        if (projetosData?.Dados != null)
                         {
-                            viewModel.Atividades = discursosData.dados.Select(d => new AtividadeLegislativa
+                            var projetos = projetosData.Dados.Select(p => new AtividadeLegislativa
                             {
-                                Tipo = d.tipoDiscurso ?? "Discurso",
-                                Titulo = d.titulo ?? "Pronunciamento",
-                                Data = DateTime.TryParse(d.dataHoraInicio, out var dt) ? dt : DateTime.MinValue,
-                                Descricao = !string.IsNullOrEmpty(d.ementa) ? d.ementa : (!string.IsNullOrEmpty(d.keywords) ? d.keywords : "Sem resumo disponível.")
-                            }).ToList();
+                                Tipo = "Projeto",
+                                Titulo = $"{p.SiglaTipo} {p.Numero}/{p.Ano}",
+                                Data = DateTime.Now, // A API v2 de proposicoes sem detalhes às vezes não tem dataApresentacao direto no endpoint de lista, ou tem e não mapeamos. Vamos deixar a data atual ou tentar mapear. 
+                                Descricao = p.Ementa ?? "Sem ementa disponível.",
+                                UrlLink = $"https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao={p.Id}"
+                            });
+                            viewModel.Atividades.AddRange(projetos);
                         }
+
+                        // Buscar Discursos
+                        var discursosData = await _httpClient.GetFromJsonAsync<DiscursoResponse>($"deputados/{id}/discursos?itens=15&ordem=DESC&ordenarPor=dataHoraInicio");
+                        if (discursosData?.Dados != null)
+                        {
+                            var discursos = discursosData.Dados.Select(d => new AtividadeLegislativa
+                            {
+                                Tipo = d.TipoDiscurso ?? "Discurso",
+                                Titulo = d.Titulo ?? "Pronunciamento",
+                                Data = DateTime.TryParse(d.DataHoraInicio, out var dt) ? dt : DateTime.MinValue,
+                                Descricao = !string.IsNullOrEmpty(d.Ementa) ? d.Ementa : (!string.IsNullOrEmpty(d.Keywords) ? d.Keywords : "Sem resumo disponível."),
+                                UrlLink = !string.IsNullOrEmpty(d.UrlVideo) ? d.UrlVideo : 
+                                          (!string.IsNullOrEmpty(d.UrlTexto) ? d.UrlTexto : 
+                                          (!string.IsNullOrEmpty(d.UrlAudio) ? d.UrlAudio : ""))
+                            });
+                            viewModel.Atividades.AddRange(discursos);
+                        }
+                        
+                        // Ordenar por data (os que não têm data ficam no final ou início, dependendo)
+                        viewModel.Atividades = viewModel.Atividades.OrderByDescending(a => a.Data).ToList();
                     }
                     catch { }
                 }

@@ -152,10 +152,10 @@
                 @foreach (var deputado in Model)
                 {
                     <div class="col-6 col-md-3 col-lg-2 deputado-item"
-                         data-nome="@deputado.Nome.ToLower()"
-                         data-uf="@deputado.SiglaUf.ToLower()"
-                         data-partido="@deputado.SiglaPartido.ToLower()"
-                         data-search="@deputado.Nome.ToLower() @deputado.SiglaPartido.ToLower() @deputado.SiglaUf.ToLower()">
+                         data-nome="@(deputado.Nome?.ToLower() ?? "")"
+                         data-uf="@(deputado.SiglaUf?.ToLower() ?? "")"
+                         data-partido="@(deputado.SiglaPartido?.ToLower() ?? "")"
+                         data-search="@(deputado.Nome?.ToLower() ?? "") @(deputado.SiglaPartido?.ToLower() ?? "") @(deputado.SiglaUf?.ToLower() ?? "")">
                         <div class="stat-card text-center position-relative h-100">
                             @{
                                 bool isFavorito = ViewBag.Favoritos != null && ((HashSet<int>)ViewBag.Favoritos).Contains(deputado.Id);
@@ -168,7 +168,10 @@
                                  class="rounded-circle mb-2 border border-2 border-light shadow-sm"
                                  style="width: 64px; height: 64px; object-fit: cover;">
                             <div class="fw-bold text-dark small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
-                            <div class="badge bg-primary bg-opacity-10 text-primary small mb-1">@deputado.SiglaPartido</div>
+                            <div class="d-flex flex-column gap-1 mb-2">
+                                <div class="badge bg-primary bg-opacity-10 text-primary small">@deputado.SiglaPartido</div>
+
+                            </div>
                             <div class="text-muted" style="font-size:0.7rem;">@deputado.SiglaUf</div>
                             <a href="/Dashboard/DetalhesDeputado/@deputado.Id" class="btn btn-sm btn-outline-primary rounded-pill w-100 mt-2" style="font-size:0.75rem;">Ver Atividade</a>
                         </div>
@@ -178,8 +181,10 @@
             <hr class="my-5 opacity-25">
         </div>
 
-        <!-- 3. Deputados em Destaque -->
-        <div class="mb-5" id="containerDestaques">
+
+
+        <!-- 3. Lista Completa de Deputados (com rolagem horizontal ou grid) -->
+        <div class="row g-3" id="containerDestaques">
             <h3 class="mb-4">Deputados em Destaque</h3>
             <div class="row g-3">
                 @foreach (var deputado in Model.Take(8))
@@ -197,7 +202,10 @@
                                  class="rounded-circle mb-2 border border-2 border-light shadow-sm"
                                  style="width: 64px; height: 64px; object-fit: cover;">
                             <div class="fw-bold text-dark small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
-                            <div class="badge bg-primary bg-opacity-10 text-primary small mb-1">@deputado.SiglaPartido</div>
+                            <div class="d-flex flex-column gap-1 mb-2">
+                                <div class="badge bg-primary bg-opacity-10 text-primary small">@deputado.SiglaPartido</div>
+
+                            </div>
                             <div class="text-muted" style="font-size:0.7rem;">@deputado.SiglaUf</div>
                             <a href="/Dashboard/DetalhesDeputado/@deputado.Id" class="btn btn-sm btn-outline-primary rounded-pill w-100 mt-2" style="font-size:0.75rem;">Ver Atividade</a>
                         </div>
@@ -216,8 +224,8 @@
                     {
                         foreach (var votacao in (List<VotacaoRecord>)ViewBag.Votacoes)
                         {
-                            string idLimpo = votacao.id?.Split('-')[0];
-                            string searchText = ((votacao.proposicaoNome ?? "") + " " + (votacao.siglaOrgao ?? "")).ToLower();
+                            string idLimpo = votacao.Id?.Split('-')[0];
+                            string searchText = ((votacao.ProposicaoNome ?? "") + " " + (votacao.SiglaOrgao ?? "")).ToLower();
 
                             <a href="https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=@idLimpo"
                                target="_blank" class="text-dark votacao-item" data-search="@searchText">
@@ -227,13 +235,13 @@
                                             <span class="material-symbols-outlined fs-2">gavel</span>
                                         </div>
                                         <div>
-                                            <div class="fw-bold fs-5">@(votacao.proposicaoNome ?? "Votação em " + votacao.siglaOrgao)</div>
-                                            <div class="text-muted small">@votacao.siglaOrgao • @(DateTime.TryParse(votacao.data, out var dtV) ? dtV.ToString("dd/MM/yyyy") : votacao.data)</div>
+                                            <div class="fw-bold fs-5">@(votacao.ProposicaoNome ?? "Votação em " + votacao.SiglaOrgao)</div>
+                                            <div class="text-muted small">@votacao.SiglaOrgao • @(DateTime.TryParse(votacao.Data, out var dtV) ? dtV.ToString("dd/MM/yyyy") : votacao.Data)</div>
                                         </div>
                                     </div>
                                     <div class="text-end">
                                         <span class="status-badge bg-primary text-white">CONCLUÍDA</span>
-                                        <div class="mt-2 small fw-bold text-muted">ID: @votacao.id</div>
+                                        <div class="mt-2 small fw-bold text-muted">ID: @votacao.Id</div>
                                     </div>
                                 </div>
                             </a>
@@ -254,13 +262,13 @@
                         {
                             foreach (var projeto in (List<ProjetoRecord>)ViewBag.Projetos)
                             {
-                                string projSearch = (projeto.siglaTipo + " " + projeto.numero + " " + projeto.ano + " " + projeto.ementa).ToLower();
-                                <a href="https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=@projeto.id"
+                                string projSearch = (projeto.SiglaTipo + " " + projeto.Numero + " " + projeto.Ano + " " + projeto.Ementa).ToLower();
+                                <a href="https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=@projeto.Id"
                                    target="_blank" class="project-link projeto-item" data-search="@projSearch">
                                     <div class="pb-3 border-bottom">
-                                        <span class="badge bg-success-subtle text-success mb-1">@projeto.siglaTipo @projeto.numero/@projeto.ano</span>
+                                        <span class="badge bg-success-subtle text-success mb-1">@projeto.SiglaTipo @projeto.Numero/@projeto.Ano</span>
                                         <div class="small fw-semibold text-dark lh-sm" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                            @projeto.ementa
+                                            @projeto.Ementa
                                         </div>
                                     </div>
                                 </a>
@@ -364,6 +372,8 @@
             }
         });
 
+
+
         function aplicarFiltros() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const uf = document.getElementById('filtroEstado').value;
@@ -374,7 +384,6 @@
             const containerResultados = document.getElementById('containerResultados');
             const containerDestaques = document.getElementById('containerDestaques');
             
-            // Novos Projetos e Votações ficam SEMPRE VISÍVEIS agora
             if (isFiltering) {
                 containerResultados.style.display = 'block';
                 containerDestaques.style.display = 'none';
@@ -385,10 +394,10 @@
 
             let visiveisDeputados = 0;
             document.querySelectorAll('#listaDeputados .deputado-item').forEach(el => {
-                const matchSearch = query === '' || (el.dataset.search || '').includes(query);
+                const searchTxt = (el.dataset.search || '');
+                const matchSearch = query === '' || searchTxt.includes(query);
                 const matchUf = uf === '' || (el.dataset.uf || '') === uf;
                 const matchPartido = partido === '' || (el.dataset.partido || '') === partido;
-
                 const visivel = matchSearch && matchUf && matchPartido;
                 el.style.display = visivel ? '' : 'none';
                 if (visivel) visiveisDeputados++;
@@ -397,7 +406,6 @@
             const contador = document.getElementById('contadorDeputados');
             if (contador) contador.innerText = visiveisDeputados + ' parlamentares';
 
-            // Filtra Votações e Projetos no container que permanece visível
             document.querySelectorAll('.votacao-item, .projeto-item').forEach(el => {
                 const visivel = query === '' || (el.dataset.search || '').includes(query);
                 el.style.display = visivel ? '' : 'none';
