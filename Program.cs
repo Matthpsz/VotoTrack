@@ -83,8 +83,8 @@ app.Use(async (context, next) =>
             {
                 try
                 {
-                    // Conexão direta de alto desempenho com o banco de dados Postgres do Gateway
-                    string connStr = "Server=db.kyraduhxzrxbgwrsblqe.supabase.co;Port=5432;Database=postgres;User Id=postgres;Password=yJWK4Nkfh&GUpn*;Ssl Mode=Require;Trust Server Certificate=true;";
+                    // Conexão direta de alto desempenho com o banco de dados Postgres do Gateway (usando o Connection Pooler IPv4)
+                    string connStr = "Server=aws-1-sa-east-1.pooler.supabase.com;Port=5432;Database=postgres;User Id=postgres.kyraduhxzrxbgwrsblqe;Password=yJWK4Nkfh&GUpn*;Ssl Mode=Require;Trust Server Certificate=true;";
                     
                     using (var conn = new Npgsql.NpgsqlConnection(connStr))
                     {
