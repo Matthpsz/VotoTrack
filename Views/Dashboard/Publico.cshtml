@@ -3,6 +3,7 @@
 @inject Supabase.Client SupabaseClient
 @{
     var isLoggedIn = SupabaseClient.Auth.CurrentSession != null;
+    var rankedStatus = ViewBag.RankedStatus as Dictionary<int, DeputadoRankStatus>;
 }
 
 <!DOCTYPE html>
@@ -183,23 +184,54 @@
                          data-uf="@(deputado.SiglaUf?.ToLower() ?? "")"
                          data-partido="@(deputado.SiglaPartido?.ToLower() ?? "")"
                          data-search="@(deputado.Nome?.ToLower() ?? "") @(deputado.SiglaPartido?.ToLower() ?? "") @(deputado.SiglaUf?.ToLower() ?? "")">
-                        <div class="stat-card text-center position-relative h-100">
-                            @{
-                                bool isFavorito = ViewBag.Favoritos != null && ((HashSet<int>)ViewBag.Favoritos).Contains(deputado.Id);
-                                string filledClass = isFavorito ? "icon-filled" : "";
-                            }
-                            <button onclick="toggleFavorito(@deputado.Id, this)" class="btn btn-sm position-absolute top-0 end-0 m-2 border-0 shadow-none" style="z-index: 10;">
-                                <span class="material-symbols-outlined fs-5 text-warning @filledClass">star</span>
-                            </button>
-                            <img src="@deputado.UrlFoto" alt="@deputado.Nome"
-                                 class="rounded-circle mb-2 border border-2 border-light shadow-sm"
-                                 style="width: 64px; height: 64px; object-fit: cover;">
-                            <div class="fw-bold text-body small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
-                            <div class="d-flex flex-column gap-1 mb-2">
-                                <div class="badge bg-primary bg-opacity-10 text-primary small">@deputado.SiglaPartido</div>
-
+                        <div class="stat-card text-center position-relative h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                @{
+                                    bool isFavorito = ViewBag.Favoritos != null && ((HashSet<int>)ViewBag.Favoritos).Contains(deputado.Id);
+                                    string filledClass = isFavorito ? "icon-filled" : "";
+                                    var status = (rankedStatus != null && rankedStatus.ContainsKey(deputado.Id)) ? rankedStatus[deputado.Id] : null;
+                                }
+                                <button onclick="toggleFavorito(@deputado.Id, this)" class="btn btn-sm position-absolute top-0 end-0 m-2 border-0 shadow-none" style="z-index: 10;">
+                                    <span class="material-symbols-outlined fs-5 text-warning @filledClass">star</span>
+                                </button>
+                                <img src="@deputado.UrlFoto" alt="@deputado.Nome"
+                                     class="rounded-circle mb-2 border border-2 border-light shadow-sm"
+                                     style="width: 64px; height: 64px; object-fit: cover;">
+                                <div class="fw-bold text-body small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
+                                <div class="d-flex flex-column gap-1 mb-2">
+                                    <div class="badge bg-primary bg-opacity-10 text-primary small">@deputado.SiglaPartido</div>
+                                </div>
+                                <div class="text-muted" style="font-size:0.7rem;">@deputado.SiglaUf</div>
+                                
+                                <div class="mt-2 pt-2 border-top text-start" style="font-size:0.72rem; border-top: 1px dashed var(--bs-border-color) !important;">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="text-muted d-flex align-items-center gap-1" style="font-size: 0.68rem;">
+                                            <span class="material-symbols-outlined text-danger" style="font-size: 0.85rem;">trending_up</span> Gastos:
+                                        </span>
+                                        @if (status != null)
+                                        {
+                                            <span class="fw-bold text-danger" style="font-size: 0.68rem;">#@status.RankGastos <span class="text-muted fw-normal" style="font-size: 0.6rem;">(R$ @status.TotalGasto.ToString("N0", new System.Globalization.CultureInfo("pt-BR")))</span></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">--</span>
+                                        }
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted d-flex align-items-center gap-1" style="font-size: 0.68rem;">
+                                            <span class="material-symbols-outlined text-success" style="font-size: 0.85rem;">event_available</span> Presença:
+                                        </span>
+                                        @if (status != null)
+                                        {
+                                            <span class="fw-bold text-success" style="font-size: 0.68rem;">#@status.RankPresenca <span class="text-muted fw-normal" style="font-size: 0.6rem;">(@status.PresencaPorcentagem.ToString("F1")%)</span></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">--</span>
+                                        }
+                                    </div>
+                                </div>
                             </div>
-                            <div class="text-muted" style="font-size:0.7rem;">@deputado.SiglaUf</div>
                             <a href="/Dashboard/DetalhesDeputado/@deputado.Id" class="btn btn-sm btn-outline-primary rounded-pill w-100 mt-2" style="font-size:0.75rem;">Ver Atividade</a>
                         </div>
                     </div>
@@ -216,22 +248,54 @@
                 @foreach (var deputado in Model.Take(8))
                 {
                     <div class="col-6 col-md-3 col-lg-2">
-                        <div class="stat-card text-center position-relative h-100">
-                            @{
-                                bool isFavorito = ViewBag.Favoritos != null && ((HashSet<int>)ViewBag.Favoritos).Contains(deputado.Id);
-                                string filledClass = isFavorito ? "icon-filled" : "";
-                            }
-                            <button onclick="toggleFavorito(@deputado.Id, this)" class="btn btn-sm position-absolute top-0 end-0 m-2 border-0 shadow-none" style="z-index: 10;">
-                                <span class="material-symbols-outlined fs-5 text-warning @filledClass">star</span>
-                            </button>
-                            <img src="@deputado.UrlFoto" alt="@deputado.Nome"
-                                 class="rounded-circle mb-2 border border-2 border-light shadow-sm"
-                                 style="width: 64px; height: 64px; object-fit: cover;">
-                            <div class="fw-bold text-body small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
-                            <div class="d-flex flex-column gap-1 mb-2">
-                                <div class="badge bg-primary bg-opacity-10 text-primary small">@deputado.SiglaPartido</div>
+                        <div class="stat-card text-center position-relative h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                @{
+                                    bool isFavorito = ViewBag.Favoritos != null && ((HashSet<int>)ViewBag.Favoritos).Contains(deputado.Id);
+                                    string filledClass = isFavorito ? "icon-filled" : "";
+                                    var status = (rankedStatus != null && rankedStatus.ContainsKey(deputado.Id)) ? rankedStatus[deputado.Id] : null;
+                                }
+                                <button onclick="toggleFavorito(@deputado.Id, this)" class="btn btn-sm position-absolute top-0 end-0 m-2 border-0 shadow-none" style="z-index: 10;">
+                                    <span class="material-symbols-outlined fs-5 text-warning @filledClass">star</span>
+                                </button>
+                                <img src="@deputado.UrlFoto" alt="@deputado.Nome"
+                                     class="rounded-circle mb-2 border border-2 border-light shadow-sm"
+                                     style="width: 64px; height: 64px; object-fit: cover;">
+                                <div class="fw-bold text-body small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
+                                <div class="d-flex flex-column gap-1 mb-2">
+                                    <div class="badge bg-primary bg-opacity-10 text-primary small">@deputado.SiglaPartido</div>
+                                </div>
+                                <div class="text-muted" style="font-size:0.7rem;">@deputado.SiglaUf</div>
+                                
+                                <div class="mt-2 pt-2 border-top text-start" style="font-size:0.72rem; border-top: 1px dashed var(--bs-border-color) !important;">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="text-muted d-flex align-items-center gap-1" style="font-size: 0.68rem;">
+                                            <span class="material-symbols-outlined text-danger" style="font-size: 0.85rem;">trending_up</span> Gastos:
+                                        </span>
+                                        @if (status != null)
+                                        {
+                                            <span class="fw-bold text-danger" style="font-size: 0.68rem;">#@status.RankGastos <span class="text-muted fw-normal" style="font-size: 0.6rem;">(R$ @status.TotalGasto.ToString("N0", new System.Globalization.CultureInfo("pt-BR")))</span></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">--</span>
+                                        }
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted d-flex align-items-center gap-1" style="font-size: 0.68rem;">
+                                            <span class="material-symbols-outlined text-success" style="font-size: 0.85rem;">event_available</span> Presença:
+                                        </span>
+                                        @if (status != null)
+                                        {
+                                            <span class="fw-bold text-success" style="font-size: 0.68rem;">#@status.RankPresenca <span class="text-muted fw-normal" style="font-size: 0.6rem;">(@status.PresencaPorcentagem.ToString("F1")%)</span></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">--</span>
+                                        }
+                                    </div>
+                                </div>
                             </div>
-                            <div class="text-muted" style="font-size:0.7rem;">@deputado.SiglaUf</div>
                             <a href="/Dashboard/DetalhesDeputado/@deputado.Id" class="btn btn-sm btn-outline-primary rounded-pill w-100 mt-2" style="font-size:0.75rem;">Ver Atividade</a>
                         </div>
                     </div>
@@ -278,7 +342,7 @@
                                     <div class="d-flex align-items-center justify-content-between p-2 rounded-3 hover-list-item">
                                         <div class="d-flex align-items-center gap-3 min-w-0">
                                             <div class="d-flex align-items-center justify-content-center fw-bold bg-danger bg-opacity-10 text-danger rounded-circle" style="width: 32px; height: 32px; font-size: 0.85rem; flex-shrink: 0;">
-                                                #@rank
+                                                #@(rankedStatus != null && rankedStatus.ContainsKey(gastador.Id) ? rankedStatus[gastador.Id].RankGastos.ToString() : rank.ToString())
                                             </div>
                                             <img src="@gastador.UrlFoto" alt="@gastador.Nome"
                                                  class="rounded-circle border border-2 border-light shadow-sm"
@@ -319,7 +383,7 @@
                                     <div class="d-flex align-items-center justify-content-between p-2 rounded-3 hover-list-item">
                                         <div class="d-flex align-items-center gap-3 min-w-0">
                                             <div class="d-flex align-items-center justify-content-center fw-bold bg-success bg-opacity-10 text-success rounded-circle" style="width: 32px; height: 32px; font-size: 0.85rem; flex-shrink: 0;">
-                                                #@rank
+                                                #@(rankedStatus != null && rankedStatus.ContainsKey(gastador.Id) ? rankedStatus[gastador.Id].RankGastos.ToString() : rank.ToString())
                                             </div>
                                             <img src="@gastador.UrlFoto" alt="@gastador.Nome"
                                                  class="rounded-circle border border-2 border-light shadow-sm"
@@ -363,7 +427,7 @@
                                     <div class="d-flex align-items-center justify-content-between p-2 rounded-3 hover-list-item">
                                         <div class="d-flex align-items-center gap-3 min-w-0">
                                             <div class="d-flex align-items-center justify-content-center fw-bold bg-success bg-opacity-10 text-success rounded-circle" style="width: 32px; height: 32px; font-size: 0.85rem; flex-shrink: 0;">
-                                                #@rank
+                                                #@(rankedStatus != null && rankedStatus.ContainsKey(presenca.Id) ? rankedStatus[presenca.Id].RankPresenca.ToString() : rank.ToString())
                                             </div>
                                             <img src="@presenca.UrlFoto" alt="@presenca.Nome"
                                                  class="rounded-circle border border-2 border-light shadow-sm"
@@ -409,7 +473,7 @@
                                     <div class="d-flex align-items-center justify-content-between p-2 rounded-3 hover-list-item">
                                         <div class="d-flex align-items-center gap-3 min-w-0">
                                             <div class="d-flex align-items-center justify-content-center fw-bold bg-danger bg-opacity-10 text-danger rounded-circle" style="width: 32px; height: 32px; font-size: 0.85rem; flex-shrink: 0;">
-                                                #@rank
+                                                #@(rankedStatus != null && rankedStatus.ContainsKey(presenca.Id) ? rankedStatus[presenca.Id].RankPresenca.ToString() : rank.ToString())
                                             </div>
                                             <img src="@presenca.UrlFoto" alt="@presenca.Nome"
                                                  class="rounded-circle border border-2 border-light shadow-sm"

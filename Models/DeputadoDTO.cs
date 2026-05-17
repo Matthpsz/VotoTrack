@@ -35,6 +35,16 @@ namespace VotoTrack.Models
         public int SessoesTotal { get; set; }
     }
 
+    public class DeputadoRankStatus
+    {
+        public int RankGastos { get; set; }
+        public decimal TotalGasto { get; set; }
+        public int RankPresenca { get; set; }
+        public double PresencaPorcentagem { get; set; }
+        public int SessoesPresenca { get; set; }
+        public int SessoesTotal { get; set; }
+    }
+
     public class ApiResponse
     {
         public List<DeputadoRecord> Dados { get; set; }
