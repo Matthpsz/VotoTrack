@@ -65,28 +65,44 @@ app.Use(async (context, next) =>
             }
             catch { }
 
-            var log = new VotoTrack.Models.LogTelemetria
-            {
-                Rota = path,
-                MetodoHttp = context.Request.Method,
-                StatusCode = context.Response.StatusCode,
-                TempoExecucaoMs = stopwatch.ElapsedMilliseconds,
-                DataRequisicao = DateTime.UtcNow,
-                ChaveApi = emailUsuario,
-                Projeto = "VotoTrack"
-            };
+            var pathStr = path;
+            var methodStr = context.Request.Method;
+            var statusInt = context.Response.StatusCode;
+            var elapsedLong = stopwatch.ElapsedMilliseconds;
+            var dateStr = DateTime.UtcNow;
 
             // Salva de forma assíncrona em segundo plano para não travar a resposta do usuário
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await clientSupabase.InitializeAsync();
-                    await clientSupabase.From<VotoTrack.Models.LogTelemetria>().Insert(log);
+                    // Conexão direta de alto desempenho com o banco de dados Postgres do Gateway
+                    string connStr = "Server=db.kyraduhxzrxbgwrsblqe.supabase.co;Port=5432;Database=postgres;User Id=postgres;Password=yJWK4Nkfh&GUpn*;Ssl Mode=Require;Trust Server Certificate=true;";
+                    
+                    using (var conn = new Npgsql.NpgsqlConnection(connStr))
+                    {
+                        await conn.OpenAsync();
+                        
+                        using (var cmd = new Npgsql.NpgsqlCommand())
+                        {
+                            cmd.Connection = conn;
+                            cmd.CommandText = "INSERT INTO \"LogsTelemetria\" (\"Rota\", \"MetodoHttp\", \"StatusCode\", \"TempoExecucaoMs\", \"DataRequisicao\", \"ChaveApi\", \"Projeto\") VALUES (@rota, @metodo, @status, @tempo, @data, @chave, @projeto)";
+                            
+                            cmd.Parameters.AddWithValue("rota", pathStr);
+                            cmd.Parameters.AddWithValue("metodo", methodStr);
+                            cmd.Parameters.AddWithValue("status", statusInt);
+                            cmd.Parameters.AddWithValue("tempo", elapsedLong);
+                            cmd.Parameters.AddWithValue("data", dateStr);
+                            cmd.Parameters.AddWithValue("chave", (object)emailUsuario ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("projeto", "VotoTrack");
+                            
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[Telemetria] Erro ao gravar log no Supabase: {ex.Message}");
+                    Console.WriteLine($"[Telemetria] Erro ao gravar log no Supabase Postgres do Gateway: {ex.Message}");
                 }
             });
         }
