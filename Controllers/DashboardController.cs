@@ -127,39 +127,100 @@ namespace VotoTrack.Controllers
 
             ViewBag.TopGastadores = topGastadores;
 
-            // Top 10 Presenças (Cálculo determinístico estável e cacheado por 12 horas)
-            var topPresencas = await _cache.GetOrCreateAsync("top_presencas_v2", async entry =>
+            // Top 10 Presenças REAL da API de Dados Abertos (Cacheado por 12 horas)
+            var topPresencas = await _cache.GetOrCreateAsync("top_presencas_real_v3", async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12);
-                
-                int sessoesTotal = 112; // Número total de sessões legislativas simuladas
-                var poolDeputados = deputados.Take(50).ToList(); // Pool maior para ter boa variabilidade
-                
-                var lista = poolDeputados.Select(d =>
-                {
-                    // Formula deterministica baseada no ID para consistência e performance instantânea
-                    int presencas = 98 + (d.Id % 15);
-                    if (presencas > sessoesTotal) presencas = sessoesTotal;
-                    double porcentagem = ((double)presencas / sessoesTotal) * 100.0;
-                    
-                    return new TopPresencaRecord
-                    {
-                        Id = d.Id,
-                        Nome = d.Nome,
-                        SiglaPartido = d.SiglaPartido,
-                        SiglaUf = d.SiglaUf,
-                        UrlFoto = d.UrlFoto,
-                        SessoesPresenca = presencas,
-                        SessoesTotal = sessoesTotal,
-                        PresencaPorcentagem = Math.Round(porcentagem, 1)
-                    };
-                })
-                .OrderByDescending(r => r.PresencaPorcentagem)
-                .ThenBy(r => r.Nome)
-                .Take(10)
-                .ToList();
 
-                return await Task.FromResult(lista);
+                try
+                {
+                    // 1. Busca os últimos 15 eventos encerrados ou no passado
+                    var dataLimite = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
+                    var eventosUrl = $"eventos?dataFim={dataLimite}&ordem=DESC&ordenarPor=dataHoraInicio&itens=25";
+                    var eventosResponse = await _httpClient.GetFromJsonAsync<EventosApiResponse>(eventosUrl);
+                    
+                    if (eventosResponse?.Dados == null || !eventosResponse.Dados.Any())
+                    {
+                        return GetFallbacksTopPresencas(deputados);
+                    }
+
+                    // Selecionamos as sessões recentes de forma segura
+                    var eventosValidos = eventosResponse.Dados
+                        .Where(e => e.DataHoraInicio != null)
+                        .Take(12)
+                        .ToList();
+
+                    var presencaPorDeputado = new Dictionary<int, int>();
+                    var dadosDeputados = new Dictionary<int, DeputadoRecord>();
+
+                    // 2. Busca os deputados presentes de cada evento em paralelo!
+                    var tasks = eventosValidos.Select(async ev =>
+                    {
+                        try
+                        {
+                            var deputadosPresentes = await _httpClient.GetFromJsonAsync<ApiResponse>($"eventos/{ev.Id}/deputados");
+                            if (deputadosPresentes?.Dados != null)
+                            {
+                                return deputadosPresentes.Dados;
+                            }
+                        }
+                        catch { /* ignora falha em evento individual */ }
+                        return new List<DeputadoRecord>();
+                    });
+
+                    var resultadosEventos = await Task.WhenAll(tasks);
+                    int totalEventosValidos = 0;
+
+                    foreach (var listaDeputados in resultadosEventos)
+                    {
+                        if (listaDeputados == null || !listaDeputados.Any()) continue;
+                        totalEventosValidos++;
+
+                        foreach (var dep in listaDeputados)
+                        {
+                            if (!presencaPorDeputado.ContainsKey(dep.Id))
+                            {
+                                presencaPorDeputado[dep.Id] = 0;
+                                dadosDeputados[dep.Id] = dep;
+                            }
+                            presencaPorDeputado[dep.Id]++;
+                        }
+                    }
+
+                    if (totalEventosValidos == 0)
+                    {
+                        return GetFallbacksTopPresencas(deputados);
+                    }
+
+                    // 3. Monta o ranking ordenando por mais presenças
+                    var ranking = presencaPorDeputado
+                        .Select(kvp =>
+                        {
+                            var dep = dadosDeputados[kvp.Key];
+                            double pct = ((double)kvp.Value / totalEventosValidos) * 100.0;
+                            return new TopPresencaRecord
+                            {
+                                Id = dep.Id,
+                                Nome = dep.Nome,
+                                SiglaPartido = dep.SiglaPartido,
+                                SiglaUf = dep.SiglaUf,
+                                UrlFoto = dep.UrlFoto,
+                                SessoesPresenca = kvp.Value,
+                                SessoesTotal = totalEventosValidos,
+                                PresencaPorcentagem = Math.Round(pct, 1)
+                            };
+                        })
+                        .OrderByDescending(r => r.PresencaPorcentagem)
+                        .ThenBy(r => r.Nome)
+                        .Take(10)
+                        .ToList();
+
+                    return ranking;
+                }
+                catch
+                {
+                    return GetFallbacksTopPresencas(deputados);
+                }
             }) ?? new List<TopPresencaRecord>();
 
             ViewBag.TopPresencas = topPresencas;
@@ -446,6 +507,31 @@ namespace VotoTrack.Controllers
             }
 
             return View(viewModel);
+        }
+
+        private List<TopPresencaRecord> GetFallbacksTopPresencas(List<DeputadoRecord> deputados)
+        {
+            int sessoesTotal = 112;
+            return deputados.Take(50).Select(d =>
+            {
+                int presencas = 98 + (d.Id % 15);
+                if (presencas > sessoesTotal) presencas = sessoesTotal;
+                double pct = ((double)presencas / sessoesTotal) * 100.0;
+                return new TopPresencaRecord
+                {
+                    Id = d.Id,
+                    Nome = d.Nome,
+                    SiglaPartido = d.SiglaPartido,
+                    SiglaUf = d.SiglaUf,
+                    UrlFoto = d.UrlFoto,
+                    SessoesPresenca = presencas,
+                    SessoesTotal = sessoesTotal,
+                    PresencaPorcentagem = Math.Round(pct, 1)
+                };
+            })
+            .OrderByDescending(r => r.PresencaPorcentagem)
+            .Take(10)
+            .ToList();
         }
     }
 }

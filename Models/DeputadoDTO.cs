@@ -40,6 +40,18 @@ namespace VotoTrack.Models
         public List<DeputadoRecord> Dados { get; set; }
     }
 
+    public class EventoRecord
+    {
+        public int Id { get; set; }
+        public string DataHoraInicio { get; set; }
+        public string Descricao { get; set; }
+    }
+
+    public class EventosApiResponse
+    {
+        public List<EventoRecord> Dados { get; set; }
+    }
+
     public class ApiResponseDetalhe
     {
         public DeputadoDetalheRecord Dados { get; set; }
