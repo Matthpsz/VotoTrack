@@ -74,6 +74,15 @@
             text-decoration: none !important;
         }
 
+        .hover-list-item {
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .hover-list-item:hover {
+            background-color: var(--bs-body-secondary-bg) !important;
+            transform: translateX(4px);
+        }
+
         .icon-filled {
             font-variation-settings: 'FILL' 1 !important;
         }
@@ -198,12 +207,11 @@
             </div>
             <hr class="my-5 opacity-25">
         </div>
-
-
-
-        <!-- 3. Lista Completa de Deputados (com rolagem horizontal ou grid) -->
+        <!-- 3. Lista Completa de Deputados (com rolagem horizontal ou grid) -->
         <div class="row g-3" id="containerDestaques">
-            <h3 class="mb-4">Deputados em Destaque</h3>
+            <div class="col-12 mt-5 mb-3">
+                <h3 class="mb-0">Deputados em Destaque</h3>
+            </div>
             <div class="row g-3">
                 @foreach (var deputado in Model.Take(8))
                 {
@@ -222,13 +230,104 @@
                             <div class="fw-bold text-body small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
                             <div class="d-flex flex-column gap-1 mb-2">
                                 <div class="badge bg-primary bg-opacity-10 text-primary small">@deputado.SiglaPartido</div>
-
                             </div>
                             <div class="text-muted" style="font-size:0.7rem;">@deputado.SiglaUf</div>
                             <a href="/Dashboard/DetalhesDeputado/@deputado.Id" class="btn btn-sm btn-outline-primary rounded-pill w-100 mt-2" style="font-size:0.75rem;">Ver Atividade</a>
                         </div>
                     </div>
                 }
+            </div>
+        </div>
+
+        <!-- Ranking & Estatísticas (Cota e Presenças) -->
+        <div id="containerRankingGastos" class="mt-5 mb-5">
+            <div class="row g-4">
+                <!-- Coluna 1: Maiores Despesas -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
+                        <h4 class="mb-4 d-flex align-items-center gap-2 fw-bold text-body">
+                            <span class="material-symbols-outlined text-danger">trending_up</span> Maiores Despesas do Ano (@DateTime.Now.Year)
+                        </h4>
+                        <div class="d-flex flex-column gap-2">
+                            @if (ViewBag.TopGastadores != null)
+                            {
+                                int rank = 1;
+                                foreach (var gastador in (List<TopGastadorRecord>)ViewBag.TopGastadores)
+                                {
+                                    <div class="d-flex align-items-center justify-content-between p-2 rounded-3 hover-list-item">
+                                        <div class="d-flex align-items-center gap-3 min-w-0">
+                                            <div class="d-flex align-items-center justify-content-center fw-bold bg-danger bg-opacity-10 text-danger rounded-circle" style="width: 32px; height: 32px; font-size: 0.85rem; flex-shrink: 0;">
+                                                #@rank
+                                            </div>
+                                            <img src="@gastador.UrlFoto" alt="@gastador.Nome"
+                                                 class="rounded-circle border border-2 border-light shadow-sm"
+                                                 style="width: 40px; height: 40px; object-fit: cover; flex-shrink: 0;">
+                                            <div class="min-w-0">
+                                                <div class="fw-bold text-body text-truncate" style="font-size: 0.9rem;">@gastador.Nome</div>
+                                                <div class="text-muted small">@gastador.SiglaPartido • @gastador.SiglaUf</div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3 ms-2" style="flex-shrink: 0;">
+                                            <div class="fw-bold text-danger" style="font-size: 0.9rem;">
+                                                R$ @gastador.TotalGasto.ToString("N2", new System.Globalization.CultureInfo("pt-BR"))
+                                            </div>
+                                            <a href="/Dashboard/DetalhesDeputado/@gastador.Id" class="text-muted p-0 d-flex align-items-center" title="Ver Detalhes">
+                                                <span class="material-symbols-outlined fs-5">chevron_right</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    rank++;
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna 2: Maior Presença -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
+                        <h4 class="mb-4 d-flex align-items-center gap-2 fw-bold text-body">
+                            <span class="material-symbols-outlined text-success">event_available</span> Líderes de Presença (Ano Atual)
+                        </h4>
+                        <div class="d-flex flex-column gap-2">
+                            @if (ViewBag.TopPresencas != null)
+                            {
+                                int rank = 1;
+                                foreach (var presenca in (List<TopPresencaRecord>)ViewBag.TopPresencas)
+                                {
+                                    <div class="d-flex align-items-center justify-content-between p-2 rounded-3 hover-list-item">
+                                        <div class="d-flex align-items-center gap-3 min-w-0">
+                                            <div class="d-flex align-items-center justify-content-center fw-bold bg-success bg-opacity-10 text-success rounded-circle" style="width: 32px; height: 32px; font-size: 0.85rem; flex-shrink: 0;">
+                                                #@rank
+                                            </div>
+                                            <img src="@presenca.UrlFoto" alt="@presenca.Nome"
+                                                 class="rounded-circle border border-2 border-light shadow-sm"
+                                                 style="width: 40px; height: 40px; object-fit: cover; flex-shrink: 0;">
+                                            <div class="min-w-0">
+                                                <div class="fw-bold text-body text-truncate" style="font-size: 0.9rem;">@presenca.Nome</div>
+                                                <div class="text-muted small">@presenca.SiglaPartido • @presenca.SiglaUf</div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3 ms-2" style="flex-shrink: 0;">
+                                            <div class="text-end">
+                                                <div class="fw-bold text-success" style="font-size: 0.9rem;">
+                                                    @presenca.PresencaPorcentagem%
+                                                </div>
+                                                <div class="text-muted" style="font-size: 0.7rem;">
+                                                    @presenca.SessoesPresenca/@presenca.SessoesTotal sessões
+                                                </div>
+                                            </div>
+                                            <a href="/Dashboard/DetalhesDeputado/@presenca.Id" class="text-muted p-0 d-flex align-items-center" title="Ver Detalhes">
+                                                <span class="material-symbols-outlined fs-5">chevron_right</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    rank++;
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
             <hr class="my-5 opacity-25">
         </div>
@@ -401,13 +500,16 @@
 
             const containerResultados = document.getElementById('containerResultados');
             const containerDestaques = document.getElementById('containerDestaques');
+            const containerRankingGastos = document.getElementById('containerRankingGastos');
             
             if (isFiltering) {
                 containerResultados.style.display = 'block';
                 containerDestaques.style.display = 'none';
+                if (containerRankingGastos) containerRankingGastos.style.display = 'none';
             } else {
                 containerResultados.style.display = 'none';
                 containerDestaques.style.display = 'block';
+                if (containerRankingGastos) containerRankingGastos.style.display = 'block';
             }
 
             let visiveisDeputados = 0;

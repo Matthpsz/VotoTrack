@@ -13,6 +13,28 @@ namespace VotoTrack.Models
         public string IdGlobal => $"{Esfera}_{Id}"; // ID Único para evitar colisões
     }
 
+    public class TopGastadorRecord
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; }
+        public string SiglaPartido { get; set; }
+        public string SiglaUf { get; set; }
+        public string UrlFoto { get; set; }
+        public decimal TotalGasto { get; set; }
+    }
+
+    public class TopPresencaRecord
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; }
+        public string SiglaPartido { get; set; }
+        public string SiglaUf { get; set; }
+        public string UrlFoto { get; set; }
+        public double PresencaPorcentagem { get; set; }
+        public int SessoesPresenca { get; set; }
+        public int SessoesTotal { get; set; }
+    }
+
     public class ApiResponse
     {
         public List<DeputadoRecord> Dados { get; set; }
