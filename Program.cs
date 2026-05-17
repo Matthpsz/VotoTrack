@@ -41,6 +41,13 @@ app.Use(async (context, next) =>
         return;
     }
 
+    // Retorna o último erro registrado nos cabeçalhos HTTP para diagnóstico remoto
+    try
+    {
+        context.Response.Headers["X-Telemetry-Last-Error"] = TelemetryDebug.LastError;
+    }
+    catch { }
+
     var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
     try
@@ -102,6 +109,7 @@ app.Use(async (context, next) =>
                 }
                 catch (Exception ex)
                 {
+                    TelemetryDebug.LastError = $"{ex.GetType().Name}: {ex.Message}";
                     Console.WriteLine($"[Telemetria] Erro ao gravar log no Supabase Postgres do Gateway: {ex.Message}");
                 }
             });
@@ -132,3 +140,9 @@ app.MapControllerRoute(
     pattern: "{controller=Explorar}/{action=Index}/{id?}");
 
 app.Run();
+
+// Classe Auxiliar para Diagnóstico Remoto
+public static class TelemetryDebug
+{
+    public static string LastError = "Nenhum erro registrado ainda";
+}
