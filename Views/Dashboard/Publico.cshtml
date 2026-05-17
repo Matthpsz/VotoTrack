@@ -241,7 +241,28 @@
 
         <!-- Ranking & Estatísticas (Cota e Presenças) -->
         <div id="containerRankingGastos" class="mt-5 mb-5">
-            <div class="row g-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 text-white" style="background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%); margin-top: 3rem;">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <div>
+                    <h3 class="mb-1 fw-bold text-white">Rankings de Atividade & Gastos 2026</h3>
+                    <p class="mb-0 opacity-75 small">Análise comparativa em tempo real baseada nos registros oficiais da Câmara dos Deputados.</p>
+                </div>
+                <button class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow d-flex align-items-center gap-2" 
+                        type="button" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#collapseRankings" 
+                        aria-expanded="false" 
+                        aria-controls="collapseRankings"
+                        id="btnToggleRankings">
+                    <span class="material-symbols-outlined">analytics</span>
+                    <span id="btnToggleRankingsText">Visualizar Rankings</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="collapse mb-5" id="collapseRankings">
+            <!-- SEÇÃO DE FINANÇAS: MAIORES E MENORES GASTOS -->
+            <div class="row g-4 mb-4">
                 <!-- Coluna 1: Maiores Despesas -->
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
@@ -283,7 +304,51 @@
                     </div>
                 </div>
 
-                <!-- Coluna 2: Maior Presença -->
+                <!-- Coluna 2: Menores Despesas -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
+                        <h4 class="mb-4 d-flex align-items-center gap-2 fw-bold text-body">
+                            <span class="material-symbols-outlined text-success">trending_down</span> Menores Despesas do Ano (@DateTime.Now.Year)
+                        </h4>
+                        <div class="d-flex flex-column gap-2">
+                            @if (ViewBag.MenoresGastadores != null)
+                            {
+                                int rank = 1;
+                                foreach (var gastador in (List<TopGastadorRecord>)ViewBag.MenoresGastadores)
+                                {
+                                    <div class="d-flex align-items-center justify-content-between p-2 rounded-3 hover-list-item">
+                                        <div class="d-flex align-items-center gap-3 min-w-0">
+                                            <div class="d-flex align-items-center justify-content-center fw-bold bg-success bg-opacity-10 text-success rounded-circle" style="width: 32px; height: 32px; font-size: 0.85rem; flex-shrink: 0;">
+                                                #@rank
+                                            </div>
+                                            <img src="@gastador.UrlFoto" alt="@gastador.Nome"
+                                                 class="rounded-circle border border-2 border-light shadow-sm"
+                                                 style="width: 40px; height: 40px; object-fit: cover; flex-shrink: 0;">
+                                            <div class="min-w-0">
+                                                <div class="fw-bold text-body text-truncate" style="font-size: 0.9rem;">@gastador.Nome</div>
+                                                <div class="text-muted small">@gastador.SiglaPartido • @gastador.SiglaUf</div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3 ms-2" style="flex-shrink: 0;">
+                                            <div class="fw-bold text-success" style="font-size: 0.9rem;">
+                                                R$ @gastador.TotalGasto.ToString("N2", new System.Globalization.CultureInfo("pt-BR"))
+                                            </div>
+                                            <a href="/Dashboard/DetalhesDeputado/@gastador.Id" class="text-muted p-0 d-flex align-items-center" title="Ver Detalhes">
+                                                <span class="material-symbols-outlined fs-5">chevron_right</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    rank++;
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEÇÃO DE ASSIDUIDADE: MAIORES E MENORES PRESENÇAS -->
+            <div class="row g-4">
+                <!-- Coluna 1: Líderes de Presença -->
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
                         <h4 class="mb-4 d-flex align-items-center gap-2 fw-bold text-body">
@@ -328,9 +393,56 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Coluna 2: Menores Presenças -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-body h-100">
+                        <h4 class="mb-4 d-flex align-items-center gap-2 fw-bold text-body">
+                            <span class="material-symbols-outlined text-danger">event_busy</span> Menores Presenças (Ano Atual)
+                        </h4>
+                        <div class="d-flex flex-column gap-2">
+                            @if (ViewBag.MenoresPresencas != null)
+                            {
+                                int rank = 1;
+                                foreach (var presenca in (List<TopPresencaRecord>)ViewBag.MenoresPresencas)
+                                {
+                                    <div class="d-flex align-items-center justify-content-between p-2 rounded-3 hover-list-item">
+                                        <div class="d-flex align-items-center gap-3 min-w-0">
+                                            <div class="d-flex align-items-center justify-content-center fw-bold bg-danger bg-opacity-10 text-danger rounded-circle" style="width: 32px; height: 32px; font-size: 0.85rem; flex-shrink: 0;">
+                                                #@rank
+                                            </div>
+                                            <img src="@presenca.UrlFoto" alt="@presenca.Nome"
+                                                 class="rounded-circle border border-2 border-light shadow-sm"
+                                                 style="width: 40px; height: 40px; object-fit: cover; flex-shrink: 0;">
+                                            <div class="min-w-0">
+                                                <div class="fw-bold text-body text-truncate" style="font-size: 0.9rem;">@presenca.Nome</div>
+                                                <div class="text-muted small">@presenca.SiglaPartido • @presenca.SiglaUf</div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3 ms-2" style="flex-shrink: 0;">
+                                            <div class="text-end">
+                                                <div class="fw-bold text-danger" style="font-size: 0.9rem;">
+                                                    @presenca.PresencaPorcentagem%
+                                                </div>
+                                                <div class="text-muted" style="font-size: 0.7rem;">
+                                                    @presenca.SessoesPresenca/@presenca.SessoesTotal sessões
+                                                </div>
+                                            </div>
+                                            <a href="/Dashboard/DetalhesDeputado/@presenca.Id" class="text-muted p-0 d-flex align-items-center" title="Ver Detalhes">
+                                                <span class="material-symbols-outlined fs-5">chevron_right</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    rank++;
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
             <hr class="my-5 opacity-25">
         </div>
+    </div>
 
         <!-- 4. Atividades Recentes (SEMPRE VISÍVEIS) -->
         <div class="row mb-5" id="containerAtividades">
@@ -441,6 +553,22 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             confirmModal = new bootstrap.Modal(document.getElementById('confirmUnfavoriteModal'));
+
+            // Alternância dos Rankings
+            const collapseRankings = document.getElementById('collapseRankings');
+            const btnText = document.getElementById('btnToggleRankingsText');
+            const btnIcon = document.querySelector('#btnToggleRankings .material-symbols-outlined');
+
+            if (collapseRankings) {
+                collapseRankings.addEventListener('show.bs.collapse', () => {
+                    btnText.innerText = "Ocultar Rankings";
+                    if (btnIcon) btnIcon.innerText = "visibility_off";
+                });
+                collapseRankings.addEventListener('hide.bs.collapse', () => {
+                    btnText.innerText = "Visualizar Rankings";
+                    if (btnIcon) btnIcon.innerText = "analytics";
+                });
+            }
         });
 
         async function toggleFavorito(id, btnElement) {

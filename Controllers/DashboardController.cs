@@ -80,13 +80,13 @@ namespace VotoTrack.Controllers
             catch { /* continua anônimo */ }
             ViewBag.Favoritos = favoritos;
 
-            // Top 10 Gastadores (Cálculo em paralelo e cacheado por 12 horas)
-            var topGastadores = await _cache.GetOrCreateAsync("top_gastadores_v2", async entry =>
+            // Pool Completo de Gastadores (Cálculo em paralelo e cacheado por 12 horas)
+            var gastadoresPool = await _cache.GetOrCreateAsync("gastadores_pool_v4", async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12);
                 
-                // Selecionamos um pool dos primeiros 40 deputados para analisar gastos em paralelo
-                var poolDeputados = deputados.Take(40).ToList();
+                // Selecionamos um pool dos primeiros 50 deputados para analisar gastos em paralelo
+                var poolDeputados = deputados.Take(50).ToList();
                 var tasks = poolDeputados.Select(async d =>
                 {
                     try
@@ -118,17 +118,16 @@ namespace VotoTrack.Controllers
                 });
 
                 var resultados = await Task.WhenAll(tasks);
-                return resultados
-                    .Where(r => r.TotalGasto > 0)
-                    .OrderByDescending(r => r.TotalGasto)
-                    .Take(10)
-                    .ToList();
+                return resultados.ToList();
             }) ?? new List<TopGastadorRecord>();
 
-            ViewBag.TopGastadores = topGastadores;
+            // Filtrados e ordenados
+            var gastadoresValidos = gastadoresPool.Where(r => r.TotalGasto > 0).ToList();
+            ViewBag.TopGastadores = gastadoresValidos.OrderByDescending(r => r.TotalGasto).Take(10).ToList();
+            ViewBag.MenoresGastadores = gastadoresValidos.OrderBy(r => r.TotalGasto).Take(10).ToList();
 
-            // Top 10 Presenças REAL da API de Dados Abertos (Cacheado por 12 horas)
-            var topPresencas = await _cache.GetOrCreateAsync("top_presencas_real_v3", async entry =>
+            // Pool Completo de Presenças REAL da API de Dados Abertos (Cacheado por 12 horas)
+            var presencasPool = await _cache.GetOrCreateAsync("presencas_pool_real_v4", async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12);
 
@@ -141,7 +140,7 @@ namespace VotoTrack.Controllers
                     
                     if (eventosResponse?.Dados == null || !eventosResponse.Dados.Any())
                     {
-                        return GetFallbacksTopPresencas(deputados);
+                        return GetFallbacksPresencasPool(deputados);
                     }
 
                     // Selecionamos as sessões recentes de forma segura
@@ -189,11 +188,11 @@ namespace VotoTrack.Controllers
 
                     if (totalEventosValidos == 0)
                     {
-                        return GetFallbacksTopPresencas(deputados);
+                        return GetFallbacksPresencasPool(deputados);
                     }
 
-                    // 3. Monta o ranking ordenando por mais presenças
-                    var ranking = presencaPorDeputado
+                    // 3. Monta a lista completa de presença
+                    var listaCompleta = presencaPorDeputado
                         .Select(kvp =>
                         {
                             var dep = dadosDeputados[kvp.Key];
@@ -210,20 +209,18 @@ namespace VotoTrack.Controllers
                                 PresencaPorcentagem = Math.Round(pct, 1)
                             };
                         })
-                        .OrderByDescending(r => r.PresencaPorcentagem)
-                        .ThenBy(r => r.Nome)
-                        .Take(10)
                         .ToList();
 
-                    return ranking;
+                    return listaCompleta;
                 }
                 catch
                 {
-                    return GetFallbacksTopPresencas(deputados);
+                    return GetFallbacksPresencasPool(deputados);
                 }
             }) ?? new List<TopPresencaRecord>();
 
-            ViewBag.TopPresencas = topPresencas;
+            ViewBag.TopPresencas = presencasPool.OrderByDescending(r => r.PresencaPorcentagem).ThenBy(r => r.Nome).Take(10).ToList();
+            ViewBag.MenoresPresencas = presencasPool.OrderBy(r => r.PresencaPorcentagem).ThenBy(r => r.Nome).Take(10).ToList();
 
             return View(deputados);
         }
@@ -515,7 +512,7 @@ namespace VotoTrack.Controllers
             return View(viewModel);
         }
 
-        private List<TopPresencaRecord> GetFallbacksTopPresencas(List<DeputadoRecord> deputados)
+        private List<TopPresencaRecord> GetFallbacksPresencasPool(List<DeputadoRecord> deputados)
         {
             int sessoesTotal = 112;
             return deputados.Take(50).Select(d =>
@@ -536,7 +533,6 @@ namespace VotoTrack.Controllers
                 };
             })
             .OrderByDescending(r => r.PresencaPorcentagem)
-            .Take(10)
             .ToList();
         }
     }
