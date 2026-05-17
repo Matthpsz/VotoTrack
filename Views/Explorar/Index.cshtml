@@ -1,3 +1,7 @@
+@inject Supabase.Client SupabaseClient
+@{
+    var isLoggedIn = SupabaseClient.Auth.CurrentSession != null;
+}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -11,29 +15,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
+    <link href="/css/theme.css?v=2" rel="stylesheet" />
+    <script src="/js/theme.js"></script>
+
     <style>
-        :root {
-            /* Palette de Cores Customizada */
-            --primary: #041627;
-            --primary-container: #1a2b3c;
-            --on-primary: #ffffff;
-            --secondary: #006d37;
-            --secondary-container: #6bfe9c;
-            --on-secondary-container: #00743a;
-            --background: #f8f9ff;
-            --on-surface: #0b1c30;
-            --on-surface-variant: #44474c;
-            --outline-variant: #c4c6cd;
-            --surface-container-low: #eff4ff;
-            --surface-container-high: #dce9ff;
-            --inverse-primary: #b7c8de;
-            --error: #ba1a1a;
-        }
+
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--background);
-            color: var(--on-surface);
             overflow-x: hidden;
         }
 
@@ -47,48 +36,19 @@
             vertical-align: middle;
         }
 
-        /* Custom Classes para manter o estilo */
-        .btn-primary-custom {
-            background-color: var(--primary);
-            color: var(--on-primary);
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-            .btn-primary-custom:hover {
-                background-color: var(--primary-container);
-                transform: translateY(-1px);
-            }
-
-        .nav-link-custom {
-            color: var(--on-surface-variant);
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-            .nav-link-custom:hover {
-                color: var(--primary);
-            }
-
         .nav-active {
-            color: var(--primary);
-            border-bottom: 2px solid var(--primary);
+            color: var(--bs-primary);
+            border-bottom: 2px solid var(--bs-primary);
         }
 
         .hero-section {
             padding: 80px 0;
-            background-color: white;
-            border-bottom: 1px solid var(--outline-variant);
+            border-bottom: 1px solid var(--bs-border-color);
         }
 
         .card-custom {
-            background: white;
-            border: 1px solid var(--outline-variant);
+            background-color: var(--bs-body-bg);
+            border: 1px solid var(--bs-border-color);
             border-radius: 1rem;
             padding: 2.5rem;
             transition: box-shadow 0.3s;
@@ -105,7 +65,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            border: 1px solid var(--outline-variant);
+            border: 1px solid var(--bs-border-color);
         }
 
         .label-caps {
@@ -114,24 +74,47 @@
             font-weight: 600;
             text-transform: uppercase;
         }
+
+        .glow-circle {
+            background: rgba(183,200,222,0.3);
+        }
+
+        [data-bs-theme="dark"] .glow-circle {
+            background: rgba(255,255,255,0.05);
+        }
     </style>
 </head>
 <body>
 
     <!-- Header -->
-    <header class="bg-white sticky-top border-bottom">
+    <header class="bg-body sticky-top border-bottom">
         <nav class="container-xxl d-flex align-items-center justify-content-between" style="height: 64px;">
-            <div class="fs-4 fw-black text-primary" style="font-family: 'Public Sans'; letter-spacing: -1px;">VotoTrack</div>
+            <div class="fs-4 text-primary" style="font-family: 'Public Sans'; letter-spacing: -1px; font-weight: 900; cursor: pointer;" onclick="window.location.href='/'">VotoTrack</div>
 
-            <div class="d-none d-md-flex gap-4">
-                <a class="nav-link-custom nav-active pb-1" href="#">Explorar</a>
-                <a class="nav-link-custom" href="javascript:void(0)" onclick="window.location.href='/Dashboard/Publico'" style="cursor: pointer; text-decoration: none;">Dashboard</a>
-                <a class="nav-link-custom" href="/Explorar/FAQ">API</a>
-            </div>
-
-            <div class="d-flex align-items-center gap-3">
-                <button class="btn-primary-custom" onclick="window.location.href='/Auth/Index'">Entrar</button>
-            </div>
+            @if (isLoggedIn)
+            {
+                <div class="d-flex gap-2 align-items-center">
+                    <button class="btn btn-link nav-link px-2 text-decoration-none text-muted" id="bd-theme" type="button" title="Alternar tema">
+                        <span class="material-symbols-outlined theme-icon-active" style="font-size: 1.4rem;">light_mode</span>
+                    </button>
+                    <a href="/Dashboard/MinhaBancada" class="btn btn-sm btn-outline-primary rounded-pill px-3">Minha Bancada</a>
+                    <a href="/Auth/Logout" class="btn btn-sm btn-outline-danger rounded-pill px-3">Sair</a>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-none d-md-flex gap-4 align-items-center">
+                        <a class="nav-link nav-active pb-1 text-decoration-none" href="#">Explorar</a>
+                        <a class="nav-link text-decoration-none" href="javascript:void(0)" onclick="window.location.href='/Dashboard/Publico'" style="cursor: pointer;">Monitoramento Público</a>
+                        <a class="nav-link text-decoration-none" href="/Explorar/FAQ">API</a>
+                    </div>
+                    <button class="btn btn-link nav-link px-2 text-decoration-none text-muted" id="bd-theme" type="button" title="Alternar tema">
+                        <span class="material-symbols-outlined theme-icon-active" style="font-size: 1.4rem;">light_mode</span>
+                    </button>
+                    <button class="btn btn-primary btn-sm px-4" onclick="window.location.href='/Auth/Index'">Entrar</button>
+                </div>
+            }
         </nav>
     </header>
 
@@ -141,25 +124,24 @@
             <div class="container-xxl">
                 <div class="row align-items-center g-5">
                     <div class="col-lg-6">
-                        <span class="badge rounded-pill mb-3 py-2 px-3" style="background-color: var(--surface-container-high); color: var(--on-secondary-container);">TRANSPARÊNCIA RADICAL</span>
+                        <span class="badge rounded-pill mb-3 py-2 px-3 text-bg-secondary">TRANSPARÊNCIA RADICAL</span>
                         <h1 class="display-4 mb-4 text-primary">Acompanhe como seu deputado vota</h1>
                         <p class="lead text-muted mb-5">Monitore em tempo real as decisões do Legislativo. Dados oficiais extraídos diretamente da Câmara e do Senado para o seu bolso.</p>
                         <div class="d-flex flex-column flex-sm-row gap-3">
                             <button class="btn btn-primary btn-lg rounded-3 px-4 py-3 d-flex align-items-center justify-content-center gap-2"
-                                    style="background-color: var(--primary);"
                                     onclick="window.location.href='/Auth/Index'">
                                 Começar a monitorar
                                 <span class="material-symbols-outlined">arrow_forward</span>
                             </button>
                             <button class="btn btn-outline-secondary btn-lg rounded-3 px-4 py-3"
                                     onclick="window.location.href='/Dashboard/Publico'">
-                                Ver Dashboard Público
+                                Ver Monitoramento Público
                             </button>
                         </div>
                     </div>
                     <div class="col-lg-6 position-relative">
-                        <div class="position-absolute translate-middle rounded-circle blur" style="width: 250px; height: 250px; background: rgba(183,200,222,0.3); z-index: -1; top: 20%; left: 20%; filter: blur(60px);"></div>
-                        <div class="bg-white p-2 rounded-4 shadow-lg border" style="transform: rotate(2deg);">
+                        <div class="position-absolute translate-middle rounded-circle blur glow-circle" style="width: 250px; height: 250px; z-index: -1; top: 20%; left: 20%; filter: blur(60px);"></div>
+                        <div class="p-2 rounded-4 shadow-lg border bg-body" style="transform: rotate(2deg);">
                             <img alt="Dashboard" class="img-fluid rounded-3" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4jG6gC6P3tvzXaFU1vg1ThsouOWF3EQn2Lp9Jek_EI4Vh7_eC2aZCIM4aKYd0i1-I5vdtsN6tjaEC3R2iD-TeyIo-5HKGeEjmEU3HflKzeUxd_6QkMOv0gW-4hCdvUBxWwPhtcJAUyR-53x7u8-tMDSzHAS7XhW-Buo3VDEoqjFrzSHrpc8s0riYdhpViT6ziSMO-YzTkvw8bRVuvv2qOmckOdCwHOBD13sRI05Pe2haP-01ju5ngVnWkA-nrEWeSnA18wl9MhULA" style="filter: grayscale(0.2) contrast(1.1);">
                         </div>
                     </div>
@@ -168,7 +150,7 @@
         </section>
 
         <!-- Data Sources -->
-        <section class="py-5" style="background-color: #ffffff;">
+        <section class="py-5 bg-body-tertiary">
             <div class="container-xxl py-5">
                 <div class="text-center mb-5">
                     <h2 class="display-6 text-primary mb-3">Dados Abertos, Decisões Reais</h2>
@@ -177,7 +159,7 @@
                 <div class="row g-4">
                     <div class="col-md-6">
                         <div class="card-custom">
-                            <div class="d-flex align-items-center justify-content-center bg-light rounded mb-4" style="width: 48px; height: 48px;">
+                            <div class="d-flex align-items-center justify-content-center bg-body-tertiary rounded mb-4" style="width: 48px; height: 48px;">
                                 <span class="material-symbols-outlined text-primary fs-2">account_balance</span>
                             </div>
                             <h3 class="h4 text-primary">Câmara dos Deputados</h3>
@@ -189,7 +171,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="card-custom">
-                            <div class="d-flex align-items-center justify-content-center bg-light rounded mb-4" style="width: 48px; height: 48px;">
+                            <div class="d-flex align-items-center justify-content-center bg-body-tertiary rounded mb-4" style="width: 48px; height: 48px;">
                                 <span class="material-symbols-outlined text-primary fs-2">assured_workload</span>
                             </div>
                             <h3 class="h4 text-primary">Senado Federal</h3>
@@ -209,25 +191,25 @@
                 <h2 class="display-6 text-primary text-center mb-5">Como o VotoTrack funciona</h2>
                 <div class="row g-4">
                     <div class="col-md-4">
-                        <div class="bento-card" style="background-color: var(--surface-container-low);">
+                        <div class="bento-card bg-body-tertiary">
                             <div>
                                 <div class="display-4 fw-black text-primary opacity-25">01</div>
                                 <h3 class="h4 text-primary">Escolha quem seguir</h3>
                                 <p class="text-muted">Favorite os deputados e senadores que você deseja monitorar de perto.</p>
                             </div>
-                            <div class="bg-white p-3 rounded-3 shadow-sm d-flex align-items-center gap-3">
-                                <div class="rounded-circle bg-light" style="width: 40px; height: 40px;"></div>
-                                <div class="flex-grow-1"><div class="bg-light w-75 mb-1" style="height: 8px;"></div><div class="bg-light w-50" style="height: 8px;"></div></div>
+                            <div class="bg-body p-3 rounded-3 shadow-sm d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-body-tertiary" style="width: 40px; height: 40px;"></div>
+                                <div class="flex-grow-1"><div class="bg-body-tertiary w-75 mb-1" style="height: 8px;"></div><div class="bg-body-tertiary w-50" style="height: 8px;"></div></div>
                                 <span class="material-symbols-outlined text-primary">bookmarks</span>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="bento-card" style="background-color: var(--primary); color: white;">
+                        <div class="bento-card bg-body-secondary text-body">
                             <div>
-                                <div class="display-4 fw-black text-white opacity-25">02</div>
-                                <h3 class="h4">Rastreie Votações</h3>
-                                <p style="color: var(--inverse-primary);">Receba o histórico de como seu parlamentar votou em temas cruciais.</p>
+                                <div class="display-4 fw-black text-primary opacity-25">02</div>
+                                <h3 class="h4 text-primary">Rastreie Votações</h3>
+                                <p class="text-muted">Receba o histórico de como seu parlamentar votou em temas cruciais.</p>
                             </div>
                             <div class="d-flex flex-column gap-2">
                                 <div class="p-2 rounded bg-success text-white fw-bold" style="font-size: 10px;">SIM: 74%</div>
@@ -236,13 +218,13 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="bento-card" style="background-color: var(--surface-container-low);">
+                        <div class="bento-card bg-body-tertiary">
                             <div>
                                 <div class="display-4 fw-black text-primary opacity-25">03</div>
                                 <h3 class="h4 text-primary">Alertas em Tempo Real</h3>
                                 <p class="text-muted">Não perca nenhuma movimentação. Ative notificações para novos projetos.</p>
                             </div>
-                            <div class="bg-white p-3 rounded-3 shadow-sm d-flex align-items-center gap-3">
+                            <div class="bg-body p-3 rounded-3 shadow-sm d-flex align-items-center gap-3">
                                 <span class="material-symbols-outlined text-danger">notifications_active</span>
                                 <div class="small fw-bold">Nova votação iniciada em Brasília</div>
                             </div>
@@ -252,15 +234,14 @@
             </div>
         </section>
 
-        <!-- CTA -->
         <section class="py-5">
             <div class="container-xxl py-5 text-center">
-                <div class="p-5 rounded-5 text-white position-relative overflow-hidden" style="background-color: var(--primary);">
+                <div class="p-5 rounded-5 text-white position-relative overflow-hidden" style="background-color: #041627;">
                     <div class="position-absolute top-0 end-0 rounded-circle" style="width: 300px; height: 300px; background: rgba(255,255,255,0.05); margin-right: -100px; margin-top: -100px;"></div>
-                    <h2 class="display-5 mb-4">Pronto para exercer sua cidadania?</h2>
-                    <p class="mb-5 mx-auto" style="max-width: 500px; color: var(--inverse-primary);">Junte-se a mais de 50.000 brasileiros que monitoram o poder de perto.</p>
+                    <h2 class="display-5 mb-4 text-white">Pronto para exercer sua cidadania?</h2>
+                    <p class="mb-5 mx-auto text-white-50" style="max-width: 500px;">Junte-se a mais de 50.000 brasileiros que monitoram o poder de perto.</p>
                     <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
-                        <button class="btn btn-lg px-5 py-3 fw-bold" style="background-color: var(--secondary-container); color: var(--on-secondary-container);" onclick="window.location.href='/Auth/Index'">Criar Conta Gratuita</button>
+                        <button class="btn btn-light btn-lg px-5 py-3 fw-bold text-primary" onclick="window.location.href='/Auth/Index'">Criar Conta Gratuita</button>
                         <button class="btn btn-outline-light btn-lg px-5 py-3 fw-bold" onclick="window.location.href='/Explorar/FAQ'">Ver FAQ</button>
                     </div>
                 </div>
@@ -268,7 +249,7 @@
         </section>
     </main>
 
-    <footer class="bg-white border-top py-5">
+    <footer class="border-top py-5 bg-body">
         <div class="container-xxl">
             <div class="row g-4 justify-content-between mb-5">
                 <div class="col-lg-3">

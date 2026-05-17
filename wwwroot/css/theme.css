@@ -1,0 +1,24 @@
+/* VotoTrack Global Theme Variables */
+
+:root {
+    --bs-primary: #041627;
+    --bs-primary-rgb: 4, 22, 39;
+    
+    --primary: #041627;
+    --primary-container: #1a2b3c;
+    --on-primary: #ffffff;
+    --secondary: #006d37;
+    --secondary-container: #6bfe9c;
+    --on-secondary-container: #00743a;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+[data-bs-theme="dark"] {
+    --bs-primary: #3b82f6;
+    --bs-primary-rgb: 59, 130, 246;
+    --bs-primary-text-emphasis: #60a5fa;
+    --bs-primary-bg-subtle: #1e3a8a;
+}

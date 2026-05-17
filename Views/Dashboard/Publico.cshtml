@@ -1,5 +1,9 @@
 @using VotoTrack.Models
 @model List<DeputadoRecord>
+@inject Supabase.Client SupabaseClient
+@{
+    var isLoggedIn = SupabaseClient.Auth.CurrentSession != null;
+}
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -11,18 +15,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
+    <link href="/css/theme.css" rel="stylesheet" />
+    <script src="/js/theme.js"></script>
     <style>
-        :root {
-            --primary: #041627;
-            --background: #f8f9ff;
-            --outline-variant: #c4c6cd;
-            --surface: #ffffff;
-        }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--background);
-            color: var(--primary);
         }
 
         h1, h2, h3 {
@@ -31,8 +29,8 @@
         }
 
         .stat-card {
-            background: var(--surface);
-            border: 1px solid var(--outline-variant);
+            background-color: var(--bs-body-bg);
+            border: 1px solid var(--bs-border-color);
             border-radius: 1rem;
             padding: 1.5rem;
             transition: transform 0.2s;
@@ -40,8 +38,8 @@
         }
 
         .vote-item {
-            background: var(--surface);
-            border: 1px solid var(--outline-variant);
+            background-color: var(--bs-body-bg);
+            border: 1px solid var(--bs-border-color);
             border-radius: 1rem;
             margin-bottom: 1rem;
             padding: 1.25rem;
@@ -49,7 +47,7 @@
         }
 
             .vote-item:hover {
-                border-color: var(--primary);
+                border-color: var(--bs-body-color);
                 box-shadow: 0 4px 12px rgba(0,0,0,0.05);
                 transform: translateY(-2px);
             }
@@ -68,7 +66,7 @@
         }
 
             .project-link:hover {
-                background-color: #f8f9fa;
+                background-color: var(--bs-body-secondary-bg);
                 transform: translateX(5px);
             }
 
@@ -83,13 +81,33 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+    <nav class="navbar navbar-expand-lg bg-body border-bottom sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="/Dashboard/Publico" style="font-family: 'Public Sans';">VotoTrack</a>
-            <div class="d-flex gap-2">
-                <a href="/Dashboard/MinhaBancada" class="btn btn-sm btn-outline-primary rounded-pill px-3">Minha Bancada</a>
-                <a href="/Auth/Logout" class="btn btn-sm btn-outline-danger rounded-pill px-3">Sair</a>
-            </div>
+            <div class="fs-4 text-primary" style="font-family: 'Public Sans'; letter-spacing: -1px; font-weight: 900; cursor: pointer;" onclick="window.location.href='/'">VotoTrack</div>
+            @if (isLoggedIn)
+            {
+                <div class="d-flex gap-2 align-items-center">
+                    <button class="btn btn-link nav-link-custom px-2 text-decoration-none text-muted" id="bd-theme" type="button" title="Alternar tema">
+                        <span class="material-symbols-outlined theme-icon-active" style="font-size: 1.4rem;">light_mode</span>
+                    </button>
+                    <a href="/Dashboard/MinhaBancada" class="btn btn-sm btn-outline-primary rounded-pill px-3">Minha Bancada</a>
+                    <a href="/Auth/Logout" class="btn btn-sm btn-outline-danger rounded-pill px-3">Sair</a>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-none d-md-flex gap-4 align-items-center">
+                        <a class="nav-link text-muted" href="/" style="font-size: 0.875rem; font-weight: 500;">Explorar</a>
+                        <a class="nav-link text-primary fw-bold" href="/Dashboard/Publico" style="font-size: 0.875rem;">Monitoramento Público</a>
+                        <a class="nav-link text-muted" href="/Explorar/FAQ" style="font-size: 0.875rem; font-weight: 500;">API</a>
+                    </div>
+                    <button class="btn btn-link nav-link px-2 text-decoration-none text-muted" id="bd-theme" type="button" title="Alternar tema">
+                        <span class="material-symbols-outlined theme-icon-active" style="font-size: 1.4rem;">light_mode</span>
+                    </button>
+                    <button class="btn btn-primary btn-sm px-4" onclick="window.location.href='/Auth/Index'">Entrar</button>
+                </div>
+            }
         </div>
     </nav>
 
@@ -103,7 +121,7 @@
         </div>
 
         <!-- 1. Barra de Filtros -->
-        <div class="card border-0 shadow-sm rounded-4 p-4 mb-5" style="background:white;">
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-body">
             <div class="row g-3 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label small fw-bold text-muted">BUSCAR</label>
@@ -167,7 +185,7 @@
                             <img src="@deputado.UrlFoto" alt="@deputado.Nome"
                                  class="rounded-circle mb-2 border border-2 border-light shadow-sm"
                                  style="width: 64px; height: 64px; object-fit: cover;">
-                            <div class="fw-bold text-dark small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
+                            <div class="fw-bold text-body small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
                             <div class="d-flex flex-column gap-1 mb-2">
                                 <div class="badge bg-primary bg-opacity-10 text-primary small">@deputado.SiglaPartido</div>
 
@@ -201,7 +219,7 @@
                             <img src="@deputado.UrlFoto" alt="@deputado.Nome"
                                  class="rounded-circle mb-2 border border-2 border-light shadow-sm"
                                  style="width: 64px; height: 64px; object-fit: cover;">
-                            <div class="fw-bold text-dark small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
+                            <div class="fw-bold text-body small lh-sm mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@deputado.Nome</div>
                             <div class="d-flex flex-column gap-1 mb-2">
                                 <div class="badge bg-primary bg-opacity-10 text-primary small">@deputado.SiglaPartido</div>
 
@@ -228,10 +246,10 @@
                             string searchText = ((votacao.ProposicaoNome ?? "") + " " + (votacao.SiglaOrgao ?? "")).ToLower();
 
                             <a href="https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=@idLimpo"
-                               target="_blank" class="text-dark votacao-item" data-search="@searchText">
+                               target="_blank" class="text-body votacao-item" data-search="@searchText">
                                 <div class="vote-item d-flex align-items-center justify-content-between flex-wrap gap-3">
                                     <div class="d-flex align-items-center gap-3">
-                                        <div class="bg-light p-3 rounded-circle text-primary">
+                                        <div class="bg-body-tertiary p-3 rounded-circle text-primary">
                                             <span class="material-symbols-outlined fs-2">gavel</span>
                                         </div>
                                         <div>
@@ -255,7 +273,7 @@
             </div>
 
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background: white;">
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
                     <h4 class="mb-3">Novos Projetos</h4>
                     <div class="d-flex flex-column gap-3" id="listaProjetos">
                         @if (ViewBag.Projetos != null)
@@ -267,7 +285,7 @@
                                    target="_blank" class="project-link projeto-item" data-search="@projSearch">
                                     <div class="pb-3 border-bottom">
                                         <span class="badge bg-success-subtle text-success mb-1">@projeto.SiglaTipo @projeto.Numero/@projeto.Ano</span>
-                                        <div class="small fw-semibold text-dark lh-sm" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                        <div class="small fw-semibold text-body lh-sm" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                                             @projeto.Ementa
                                         </div>
                                     </div>
@@ -277,7 +295,7 @@
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm rounded-4 p-4 text-white" style="background: #041627;">
+                <div class="card border-0 shadow-sm rounded-4 p-4 text-white bg-dark">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <span class="material-symbols-outlined">verified_user</span>
                         <h4 class="m-0">Transparência</h4>
@@ -291,7 +309,7 @@
         </div>
     </div>
 
-    <footer class="bg-white border-top py-5 mt-5">
+    <footer class="bg-body border-top py-5 mt-5">
         <div class="container text-center">
             <p class="text-muted small mb-0">&copy; 2026 VotoTrack - Tecnologia para a Democracia.</p>
         </div>
@@ -421,3 +439,4 @@
     </script>
 </body>
 </html>
+

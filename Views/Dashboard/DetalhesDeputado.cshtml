@@ -1,5 +1,9 @@
 @using VotoTrack.Models
 @model DetalhesDeputadoViewModel
+@inject Supabase.Client SupabaseClient
+@{
+    var isLoggedIn = SupabaseClient.Auth.CurrentSession != null;
+}
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -11,19 +15,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
+    <link href="/css/theme.css" rel="stylesheet" />
+    <script src="/js/theme.js"></script>
+
     <style>
         :root {
-            --primary: #041627;
-            --background: #f8f9ff;
-            --outline-variant: #c4c6cd;
-            --surface: #ffffff;
             --accent: #2563eb;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--background);
-            color: var(--primary);
+            background-color: var(--bs-body-bg);
+            color: var(--bs-body-color);
         }
 
         h1, h2, h3, h4, h5, h6 {
@@ -59,7 +62,7 @@
             width: 180px;
             height: 180px;
             border-radius: 50%;
-            border: 6px solid var(--background);
+            border: 6px solid var(--bs-body-bg);
             object-fit: cover;
             box-shadow: 0 8px 24px rgba(0,0,0,0.15);
             background: white;
@@ -71,8 +74,8 @@
         }
 
         .card-custom {
-            background: var(--surface);
-            border: 1px solid var(--outline-variant);
+            background: var(--bs-body-bg);
+            border: 1px solid var(--bs-border-color);
             border-radius: 1.25rem;
             padding: 1.5rem;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
@@ -90,7 +93,7 @@
             top: 0;
             bottom: 0;
             width: 2px;
-            background: var(--outline-variant);
+            background: var(--bs-border-color);
             opacity: 0.5;
         }
 
@@ -108,7 +111,7 @@
             height: 1rem;
             border-radius: 50%;
             background: var(--accent);
-            border: 3px solid var(--surface);
+            border: 3px solid var(--bs-body-bg);
             box-shadow: 0 0 0 2px var(--accent);
         }
 
@@ -117,7 +120,7 @@
         }
 
         .nav-link-custom {
-            color: var(--primary);
+            color: var(--bs-body-color);
             font-weight: 500;
         }
 
@@ -126,20 +129,48 @@
             justify-content: space-between;
             align-items: center;
             padding: 1rem 0;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--bs-border-color);
         }
         .expense-item:last-child { border-bottom: none; }
+
+        .timeline-item a {
+            transition: background-color 0.2s;
+        }
+
+        .timeline-item a:hover {
+            background-color: var(--bs-body-secondary-bg) !important;
+        }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+    <nav class="navbar navbar-expand-lg bg-body border-bottom sticky-top">
         <div class="container">
-            <a class="navbar-brand text-primary fw-bold" style="font-family: 'Public Sans';" href="/Dashboard/Publico">VotoTrack</a>
-            <div class="d-flex gap-2">
-                <a href="/Dashboard/MinhaBancada" class="btn btn-sm btn-outline-primary rounded-pill px-3">Minha Bancada</a>
-                <a href="/Auth/Logout" class="btn btn-sm btn-outline-danger rounded-pill px-3">Sair</a>
-            </div>
+            <div class="fs-4 text-primary" style="font-family: 'Public Sans'; letter-spacing: -1px; font-weight: 900; cursor: pointer;" onclick="window.location.href='/'">VotoTrack</div>
+            @if (isLoggedIn)
+            {
+                <div class="d-flex gap-2 align-items-center">
+                    <button class="btn btn-link nav-link-custom px-2 text-decoration-none text-muted" id="bd-theme" type="button" title="Alternar tema">
+                        <span class="material-symbols-outlined theme-icon-active" style="font-size: 1.4rem;">light_mode</span>
+                    </button>
+                    <a href="/Dashboard/MinhaBancada" class="btn btn-sm btn-outline-primary rounded-pill px-3">Minha Bancada</a>
+                    <a href="/Auth/Logout" class="btn btn-sm btn-outline-danger rounded-pill px-3">Sair</a>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-none d-md-flex gap-4 align-items-center">
+                        <a class="nav-link text-muted" href="/" style="font-size: 0.875rem; font-weight: 500;">Explorar</a>
+                        <a class="nav-link text-primary fw-bold" href="/Dashboard/Publico" style="font-size: 0.875rem;">Monitoramento Público</a>
+                        <a class="nav-link text-muted" href="/Explorar/FAQ" style="font-size: 0.875rem; font-weight: 500;">API</a>
+                    </div>
+                    <button class="btn btn-link nav-link px-2 text-decoration-none text-muted" id="bd-theme" type="button" title="Alternar tema">
+                        <span class="material-symbols-outlined theme-icon-active" style="font-size: 1.4rem;">light_mode</span>
+                    </button>
+                    <button class="btn btn-primary btn-sm px-4" onclick="window.location.href='/Auth/Index'">Entrar</button>
+                </div>
+            }
         </div>
     </nav>
 
@@ -153,13 +184,13 @@
         <div class="cover-photo shadow-sm"></div>
         
         <div class="profile-header mb-5">
-            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5" style="background: white;">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-body">
                 <div class="d-flex flex-column flex-md-row gap-4 align-items-center align-items-md-end text-center text-md-start">
                     
                     <img src="@Model.Deputado.UrlFoto" alt="@Model.Deputado.Nome" class="profile-avatar shadow-sm" style="margin-top: -100px;">
                     
                     <div class="flex-grow-1">
-                        <h1 class="display-6 fw-bold mb-2 text-dark">@Model.Deputado.Nome</h1>
+                        <h1 class="display-6 fw-bold mb-2 text-body">@Model.Deputado.Nome</h1>
                         <div class="d-flex flex-wrap justify-content-center justify-content-md-start align-items-center gap-3 text-muted fw-medium">
                             <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle fs-6 px-3 py-2 rounded-pill">@Model.Deputado.SiglaPartido</span>
                             <span class="d-flex align-items-center gap-1"><span class="material-symbols-outlined fs-5">location_on</span> @Model.Deputado.SiglaUf</span>
@@ -236,7 +267,7 @@
                     </div>
                     <!-- Total -->
                     <div class="d-flex justify-content-between align-items-center pt-3 mt-2 border-top">
-                        <span class="fw-bold text-dark">Total do período</span>
+                        <span class="fw-bold text-body">Total do período</span>
                         <span class="fw-bold text-danger fs-5">R$ @Model.Despesas.Sum(d => d.Valor).ToString("N2")</span>
                     </div>
                 </div>
@@ -251,7 +282,7 @@
                         @foreach (var atividade in Model.Atividades)
                         {
                             <div class="timeline-item">
-                                <span class="badge bg-light text-dark border mb-2 d-inline-flex align-items-center gap-1">
+                                <span class="badge bg-body-tertiary text-body border mb-2 d-inline-flex align-items-center gap-1">
                                     @if(atividade.Tipo == "Voto") { <span class="material-symbols-outlined fs-6 text-success">how_to_vote</span> }
                                     else if(atividade.Tipo == "Discurso") { <span class="material-symbols-outlined fs-6 text-primary">record_voice_over</span> }
                                     else if(atividade.Tipo == "Projeto") { <span class="material-symbols-outlined fs-6 text-info">description</span> }
@@ -262,7 +293,7 @@
                                 
                                 @if (!string.IsNullOrEmpty(atividade.UrlLink))
                                 {
-                                    <a href="@atividade.UrlLink" target="_blank" class="text-decoration-none d-block mt-1 p-2 rounded-3" style="margin-left: -0.5rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <a href="@atividade.UrlLink" target="_blank" class="text-decoration-none d-block mt-1 p-2 rounded-3" style="margin-left: -0.5rem;">
                                         <h5 class="fw-bold text-primary mb-1 d-flex align-items-center gap-1">
                                             @atividade.Titulo <span class="material-symbols-outlined fs-6">open_in_new</span>
                                         </h5>
@@ -345,3 +376,4 @@
     </script>
 </body>
 </html>
+

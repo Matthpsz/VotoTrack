@@ -1,3 +1,7 @@
+@inject Supabase.Client SupabaseClient
+@{
+    var isLoggedIn = SupabaseClient.Auth.CurrentSession != null;
+}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -11,29 +15,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
+    <link href="/css/theme.css" rel="stylesheet" />
+    <script src="/js/theme.js"></script>
+
     <style>
-        :root {
-            /* Palette de Cores Customizada - Seguindo a Index */
-            --primary: #041627;
-            --primary-container: #1a2b3c;
-            --on-primary: #ffffff;
-            --secondary: #006d37;
-            --secondary-container: #6bfe9c;
-            --on-secondary-container: #00743a;
-            --background: #f8f9ff;
-            --on-surface: #0b1c30;
-            --on-surface-variant: #44474c;
-            --outline-variant: #c4c6cd;
-            --surface-container-low: #eff4ff;
-            --surface-container-high: #dce9ff;
-            --inverse-primary: #b7c8de;
-            --error: #ba1a1a;
-        }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--background);
-            color: var(--on-surface);
+            background-color: var(--bs-body-bg);
+            color: var(--bs-body-color);
             overflow-x: hidden;
         }
 
@@ -48,7 +38,7 @@
         }
 
         .nav-link-custom {
-            color: var(--on-surface-variant);
+            color: var(--bs-secondary-color);
             text-decoration: none;
             font-size: 0.875rem;
             font-weight: 500;
@@ -56,12 +46,12 @@
         }
 
             .nav-link-custom:hover {
-                color: var(--primary);
+                color: var(--bs-body-color);
             }
 
         .card-custom {
-            background: white;
-            border: 1px solid var(--outline-variant);
+            background-color: var(--bs-body-bg);
+            border: 1px solid var(--bs-border-color);
             border-radius: 1rem;
             padding: 2rem;
             margin-bottom: 1.5rem;
@@ -75,7 +65,7 @@
 
         .faq-question {
             font-weight: 700;
-            color: var(--primary);
+            color: var(--bs-body-color);
             margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
@@ -84,7 +74,7 @@
         }
 
         .faq-answer {
-            color: var(--on-surface-variant);
+            color: var(--bs-secondary-color);
             line-height: 1.6;
             font-size: 0.95rem;
         }
@@ -108,8 +98,8 @@
 
         .hero-mini {
             padding: 60px 0;
-            background-color: white;
-            border-bottom: 1px solid var(--outline-variant);
+            background-color: var(--bs-body-tertiary-bg);
+            border-bottom: 1px solid var(--bs-border-color);
             margin-bottom: 3rem;
         }
     </style>
@@ -117,19 +107,34 @@
 <body>
 
     <!-- Header -->
-    <header class="bg-white sticky-top border-bottom">
+    <header class="bg-body sticky-top border-bottom">
         <nav class="container-xxl d-flex align-items-center justify-content-between" style="height: 64px;">
-            <div class="fs-4 fw-black text-primary" style="font-family: 'Public Sans'; letter-spacing: -1px; cursor: pointer;" onclick="window.location.href='/'">VotoTrack</div>
+            <div class="fs-4 text-primary" style="font-family: 'Public Sans'; letter-spacing: -1px; font-weight: 900; cursor: pointer;" onclick="window.location.href='/'">VotoTrack</div>
 
-            <div class="d-none d-md-flex gap-4">
-                <a class="nav-link-custom" href="/">Explorar</a>
-                <a class="nav-link-custom" href="javascript:void(0)" onclick="window.location.href='/Dashboard/Publico'">Dashboard</a>
-                <a class="nav-link-custom fw-bold text-primary" href="/Explorar/FAQ">API</a>
-            </div>
-
-            <div class="d-flex align-items-center gap-3">
-                <button class="btn btn-dark btn-sm px-4" onclick="window.location.href='/Auth/Index'">Entrar</button>
-            </div>
+            @if (isLoggedIn)
+            {
+                <div class="d-flex gap-2 align-items-center">
+                    <button class="btn btn-link nav-link-custom px-2 text-decoration-none text-muted" id="bd-theme" type="button" title="Alternar tema">
+                        <span class="material-symbols-outlined theme-icon-active" style="font-size: 1.4rem;">light_mode</span>
+                    </button>
+                    <a href="/Dashboard/MinhaBancada" class="btn btn-sm btn-outline-primary rounded-pill px-3">Minha Bancada</a>
+                    <a href="/Auth/Logout" class="btn btn-sm btn-outline-danger rounded-pill px-3">Sair</a>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-none d-md-flex gap-4 align-items-center">
+                        <a class="nav-link text-muted" href="/" style="font-size: 0.875rem; font-weight: 500;">Explorar</a>
+                        <a class="nav-link text-muted" href="/Dashboard/Publico" style="font-size: 0.875rem; font-weight: 500;">Monitoramento Público</a>
+                        <a class="nav-link text-primary fw-bold" href="/Explorar/FAQ" style="font-size: 0.875rem;">API</a>
+                    </div>
+                    <button class="btn btn-link nav-link px-2 text-decoration-none text-muted" id="bd-theme" type="button" title="Alternar tema">
+                        <span class="material-symbols-outlined theme-icon-active" style="font-size: 1.4rem;">light_mode</span>
+                    </button>
+                    <button class="btn btn-primary btn-sm px-4" onclick="window.location.href='/Auth/Index'">Entrar</button>
+                </div>
+            }
         </nav>
     </header>
 
@@ -139,7 +144,7 @@
             <div class="container-xxl">
                 <div class="row justify-content-center text-center">
                     <div class="col-lg-8">
-                        <span class="badge rounded-pill mb-3 py-2 px-3" style="background-color: var(--surface-container-high); color: var(--on-secondary-container);">CENTRAL DE AJUDA</span>
+                        <span class="badge rounded-pill mb-3 py-2 px-3 text-bg-secondary">CENTRAL DE AJUDA</span>
                         <h1 class="display-4 mb-3 text-primary">FAQ & Transparência de Dados</h1>
                         <p class="lead text-muted">Entenda como capturamos, processamos e exibimos as informações do Legislativo Brasileiro.</p>
                     </div>
@@ -211,7 +216,7 @@
                             Desenvolvedores e API
                         </h2>
                         
-                        <div class="p-4 p-md-5 rounded-4 text-white shadow-lg" style="background-color: var(--primary); background-image: radial-gradient(circle at top right, rgba(255,255,255,0.05), transparent);">
+                        <div class="p-4 p-md-5 rounded-4 text-white shadow-lg" style="background-color: #041627; background-image: radial-gradient(circle at top right, rgba(255,255,255,0.05), transparent);">
                             <h3 class="h4 mb-3">Transparência Tecnológica</h3>
                             <p class="mb-4" style="color: var(--inverse-primary); font-size: 1.05rem;">
                                 O VotoTrack incentiva a criação de novas ferramentas de cidadania. Embora não ofereçamos uma API pública própria no momento, encorajamos o uso das APIs originais que alimentam nosso sistema.
@@ -246,7 +251,7 @@
         </div>
     </main>
 
-    <footer class="bg-white border-top py-5">
+    <footer class="bg-body border-top py-5">
         <div class="container-xxl">
             <div class="row g-4 justify-content-between mb-5">
                 <div class="col-lg-3">
@@ -269,3 +274,4 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
