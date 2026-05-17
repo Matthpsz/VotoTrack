@@ -29,6 +29,74 @@ builder.Services.AddHttpClient("CamaraApi", client =>
 
 var app = builder.Build();
 
+// Middleware de Telemetria Integrado para Auditoria e Monitoramento em Produção
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value ?? "";
+    
+    // Ignorar caminhos de arquivos estáticos (CSS, JS, Imagens, Libs, etc.)
+    if (path.StartsWith("/css") || path.StartsWith("/js") || path.StartsWith("/lib") || path.StartsWith("/images") || path.Contains("."))
+    {
+        await next();
+        return;
+    }
+
+    var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+    try
+    {
+        await next();
+    }
+    finally
+    {
+        stopwatch.Stop();
+
+        try
+        {
+            var clientSupabase = context.RequestServices.GetRequiredService<Supabase.Client>();
+            var emailUsuario = "Anonimo";
+
+            try
+            {
+                if (clientSupabase.Auth.CurrentUser != null)
+                {
+                    emailUsuario = clientSupabase.Auth.CurrentUser.Email ?? clientSupabase.Auth.CurrentUser.Id;
+                }
+            }
+            catch { }
+
+            var log = new VotoTrack.Models.LogTelemetria
+            {
+                Rota = path,
+                MetodoHttp = context.Request.Method,
+                StatusCode = context.Response.StatusCode,
+                TempoExecucaoMs = stopwatch.ElapsedMilliseconds,
+                DataRequisicao = DateTime.UtcNow,
+                ChaveApi = emailUsuario,
+                Projeto = "VotoTrack"
+            };
+
+            // Salva de forma assíncrona em segundo plano para não travar a resposta do usuário
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await clientSupabase.InitializeAsync();
+                    await clientSupabase.From<VotoTrack.Models.LogTelemetria>().Insert(log);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Telemetria] Erro ao gravar log no Supabase: {ex.Message}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Telemetria] Falha geral no processador de logs: {ex.Message}");
+        }
+    }
+});
+
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
