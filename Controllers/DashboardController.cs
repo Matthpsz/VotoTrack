@@ -441,7 +441,7 @@ namespace VotoTrack.Controllers
                         // Tenta buscar no ano atual e volta até 3 anos se necessário
                         for (int year = currentYear; year >= currentYear - 3; year--)
                         {
-                            despesasData = await _httpClient.GetFromJsonAsync<DespesaResponse>($"deputados/{id}/despesas?ano={year}&itens=50&ordem=DESC&ordenarPor=dataDocumento");
+                            despesasData = await _httpClient.GetFromJsonAsync<DespesaResponse>($"deputados/{id}/despesas?ano={year}&itens=100&ordem=DESC&ordenarPor=dataDocumento");
                             if (despesasData?.Dados != null && despesasData.Dados.Any())
                                 break;
                         }
